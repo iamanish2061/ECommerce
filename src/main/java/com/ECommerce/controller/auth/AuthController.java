@@ -1,7 +1,8 @@
-package com.ECommerce.controller;
+package com.ECommerce.controller.auth;
 
+import com.ECommerce.model.AuthResponse;
 import com.ECommerce.model.Users;
-import com.ECommerce.service.AuthService;
+import com.ECommerce.service.auth.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,18 +13,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
     public ResponseEntity<Users> register(@RequestBody Users user) {
+        //validation
         return ResponseEntity.ok(authService.register(user));
     }
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Users user) {
+        //validation
         return ResponseEntity.ok(authService.login(user));
     }
 
@@ -35,13 +38,36 @@ public class AuthController {
 
     @PostMapping("/check-username")
     public ResponseEntity<?> checkUserName(@RequestBody String username){
+        //validation
         if(authService.doesUserNameExist(username)){
-            return ResponseEntity.ok("Username already exist!");
+            return ResponseEntity.ok(new AuthResponse(false, "Username already exist"));
         }
-        return ResponseEntity.ok("success");
+        return ResponseEntity.ok(new AuthResponse(true, "Username is valid"));
+    }
+
+    @PostMapping("/check-email-and-send-code")
+    public ResponseEntity<?> sendCode(@RequestBody String email){
+        //validation
+        if(authService.doesEmailExist(email)){
+            return ResponseEntity.ok(new AuthResponse(false,"Email already exist!"));
+        }
+
+        if(authService.sendCode(email)){
+            return ResponseEntity.ok(new AuthResponse(true, "Code sent successfully"));
+        }
+        return ResponseEntity.ok(new AuthResponse(false,"Error while sending code!"));
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<?> verifyCode(@RequestBody String email, String code){
+        //validation
+        if(authService.verifyCode(email, code)){
+            return ResponseEntity.ok(new AuthResponse(true, "Code is verified!"));
+        }
+        return ResponseEntity.ok(new AuthResponse(false, "Invalid Code!"));
     }
 
 
-
 }
+
 

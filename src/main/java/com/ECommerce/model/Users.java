@@ -45,6 +45,9 @@ public class Users {
     // for sending notifications only to logged-in users
     private boolean online = false;
 
+    @Transient
+    private String code;
+
     public enum Role {
         ROLE_USER,
         ROLE_ADMIN,

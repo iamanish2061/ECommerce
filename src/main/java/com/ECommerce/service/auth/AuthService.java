@@ -1,11 +1,22 @@
 package com.ECommerce.service.auth;
 
+import com.ECommerce.dto.request.EmailSenderRequest;
+import com.ECommerce.dto.request.auth.LoginRequest;
+import com.ECommerce.dto.request.auth.RefreshTokenRequest;
+import com.ECommerce.dto.request.auth.SignupRequest;
+import com.ECommerce.dto.response.auth.LoginResponse;
+import com.ECommerce.dto.response.auth.RefreshTokenResponse;
+import com.ECommerce.dto.response.auth.SignupResponse;
+import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.UserPrincipal;
 import com.ECommerce.model.Users;
 import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.UserRepository;
+import com.ECommerce.service.EmailService;
 import com.ECommerce.service.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,45 +28,61 @@ import java.util.Map;
 import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
-    @Autowired
-    private RedisService redisService;
 
-    @Autowired
-    private EmailService emailService;
-
-    @Autowired
-    private UserRepository userRepo;
-
-    @Autowired
-    private JwtService jwtService;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final RedisService redisService;
+    private final EmailService emailService;
+    private final UserRepository userRepo;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     private BCryptPasswordEncoder encoder= new BCryptPasswordEncoder(12);
 
-
-    public Users register(Users user){
-
-        if(userRepo.findByUsername(user.getUsername()).orElse(null) != null)
-            throw new RuntimeException("Username already exists!!");
-
-        if(userRepo.findByEmail(user.getUsername()).orElse(null) != null)
-            throw new RuntimeException("Email already exists!!");
-
-        if(!verifyCode(user.getEmail(), user.getCode()))
-            throw new RuntimeException("Email and code mismatched");
-        redisService.deleteCode(user.getEmail());
-        user.setPassword(encoder.encode(user.getPassword()));
-
-        //baki xa sab set garna
-        return userRepo.save(user);
+    public boolean doesUserNameExist(String username) {
+        return userRepo.existsByUsername(username);
     }
 
-    public Map<String, String> login(Users user){
+    public boolean doesEmailExist(String email) {
+        return userRepo.existsByEmail(email);
+    }
+
+    public boolean sendOtpCode(String email) {
+        Integer otpCode = new Random().nextInt(900000) +100000;
+        redisService.setCode(email, otpCode.toString(), 600L);
+        String subject = "Verifying Email";
+        String emailBody = "Your otp code is: "+otpCode+". Please do not share with anyone! If you find this irrelevant, please ignore it!";
+        return emailService.sendEmail(new EmailSenderRequest(email, subject, emailBody));
+    }
+
+    public boolean verifyOtpCode(String email, String code) {
+        String generatedCode = redisService.getCode(email);
+        return generatedCode != null && generatedCode.equals(code);
+    }
+
+
+    public SignupResponse register(SignupRequest request) throws ApplicationException {
+
+        if(userRepo.findByUsername(request.username()).orElse(null) != null)
+            throw new ApplicationException("Username is taken!", "USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
+
+        if(userRepo.findByEmail(request.email()).orElse(null) != null)
+            throw new ApplicationException("Email already exists!", "EMAIL_EXISTS", HttpStatus.BAD_REQUEST);
+
+        if(!verifyOtpCode(request.getEmail(), user.getCode()))
+            throw new ApplicationException("Invalid OTP code!", "INVALID_OTP_CODE", HttpStatus.BAD_REQUEST);
+        redisService.deleteCode(request.getEmail());
+        user.setPassword(encoder.encode(request.getPassword()));
+
+
+
+        //baki xa sab set garna
+        return userRepo.save();
+    }
+
+    public LoginResponse login(LoginRequest request){
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
         if (!authentication.isAuthenticated()){
             Map<String,String> result =  new HashMap<>();
@@ -80,7 +107,8 @@ public class AuthService {
         return tokens;
     }
 
-    public Map<String, String> refresh(String refreshToken) {
+    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
+        String refreshToken = request.refreshToken();
         Users user = userRepo.findByRefreshToken(refreshToken).orElse(null);
         if (user == null || jwtService.validateToken(refreshToken, new UserPrincipal(user))) throw new RuntimeException("Invalid refresh token");
 
@@ -97,25 +125,5 @@ public class AuthService {
     }
 
 
-    public boolean doesUserNameExist(String username) {
-        return userRepo.existsByUsername(username);
-    }
 
-    public boolean doesEmailExist(String email) {
-        return userRepo.existsByEmail(email);
-    }
-
-    public boolean sendCode(String email) {
-        Integer otpCode = new Random().nextInt(900000) +100000;
-
-        redisService.setCode(email, otpCode.toString(), 600L);
-        String subject = "Verifying Email";
-        String emailBody = "Your otp code is: "+otpCode+". Please do not share with anyone! If you find this irrelevant, please ignore it!";
-        return emailService.sendEmail(new EmailService.EmailSender(email, subject,emailBody));
-    }
-
-    public boolean verifyCode(String email, String code) {
-        String generatedCode = redisService.getCode(email);
-        return generatedCode != null && generatedCode.equals(code);
-    }
 }

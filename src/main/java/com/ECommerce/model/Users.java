@@ -42,23 +42,8 @@ public class Users {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // for sending notifications only to logged-in users
-    private boolean online = false;
-
     @Transient
     private String code;
-
-    public enum Role {
-        ROLE_USER,
-        ROLE_ADMIN,
-        ROLE_STAFF,
-        ROLE_DRIVER
-    }
-
-    public enum UserStatus{
-        ACTIVE,
-        SUSPENDED
-    }
 
 }
 

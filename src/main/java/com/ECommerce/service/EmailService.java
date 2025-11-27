@@ -1,24 +1,25 @@
-package com.ECommerce.service.auth;
+package com.ECommerce.service;
 
+import com.ECommerce.dto.request.EmailSenderRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
-    @Autowired
-    private JavaMailSender javaMailSender;
+    private final JavaMailSender javaMailSender;
 
-    public boolean sendEmail(EmailSender emailSender) {
+    public boolean sendEmail(EmailSenderRequest emailSender) {
         try{
             SimpleMailMessage mail = new SimpleMailMessage();
-            mail.setTo(emailSender.to);
-            mail.setSubject(emailSender.subject);
-            mail.setText(emailSender.body);
+            mail.setTo(emailSender.to());
+            mail.setSubject(emailSender.subject());
+            mail.setText(emailSender.body());
             javaMailSender.send(mail);
             return true;
         }catch (Exception e){
@@ -27,7 +28,5 @@ public class EmailService {
         }
 
     }
-
-    public record EmailSender(String to, String subject, String body){}
 
 }

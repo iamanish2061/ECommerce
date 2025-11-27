@@ -1,72 +1,88 @@
 package com.ECommerce.controller.auth;
 
-import com.ECommerce.model.AuthResponse;
+import com.ECommerce.dto.request.auth.LoginRequest;
+import com.ECommerce.dto.request.auth.RefreshTokenRequest;
+import com.ECommerce.dto.request.auth.SignupRequest;
+import com.ECommerce.dto.request.auth.VerifyOtpCodeRequest;
+import com.ECommerce.dto.response.ApiResponse;
+import com.ECommerce.dto.response.auth.LoginResponse;
+import com.ECommerce.dto.response.auth.RefreshTokenResponse;
+import com.ECommerce.dto.response.auth.SignupResponse;
+import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.Users;
 import com.ECommerce.service.auth.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Autowired
-    private AuthService authService;
 
-    @PostMapping("/register")
-    public ResponseEntity<Users> register(@RequestBody Users user) {
-        //validation
-        return ResponseEntity.ok(authService.register(user));
+    private final AuthService authService;
+
+    @GetMapping("/check-username-availability")
+    public ResponseEntity<ApiResponse> checkUserNameAvailability(
+            @RequestParam //validation
+            String username
+    ){
+        if(authService.doesUserNameExist(username)){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("Username is taken.", "USERNAME_EXISTS"));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.ok("Username is available."));
     }
 
+    @GetMapping("/check-email-and-send-otpCode")
+    public ResponseEntity<ApiResponse> sendOtpCode(
+            @RequestBody //validation
+            String email
+    ){
+        if(authService.doesEmailExist(email)){
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("Email already exists", "EMAIL_EXISTS"));
+        }
+        if(!authService.sendOtpCode(email)) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body(ApiResponse.error("Failed to send Code", "FAILED_TO_SEND_CODE"));
+        }
+        return ResponseEntity.status(HttpStatus.OK).
+                body(ApiResponse.ok("Code sent successfully"));
+    }
+
+    @GetMapping("/verify-otpCode")
+    public ResponseEntity<ApiResponse> verifyOtpCode(@RequestBody VerifyOtpCodeRequest request){
+        if(authService.verifyOtpCode(request.email(), request.code())){
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.ok("OTP verified."));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid OTP code.", "INVALID_CODE"));
+    }
+
+
+
+
+    @PostMapping("/register")
+    public ResponseEntity<SignupResponse> register(@RequestBody SignupRequest request) throws ApplicationException {
+        return ResponseEntity.ok(authService.register(request));
+    }
+
+
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody Users user) {
-        //validation
-        return ResponseEntity.ok(authService.login(user));
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
-        return ResponseEntity.ok(authService.refresh(refreshToken));
+    public ResponseEntity<RefreshTokenResponse> refresh(@RequestBody RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refresh(request));
     }
-
-    @PostMapping("/check-username")
-    public ResponseEntity<?> checkUserName(@RequestBody String username){
-        //validation
-        if(authService.doesUserNameExist(username)){
-            return ResponseEntity.ok(new AuthResponse(false, "Username already exist"));
-        }
-        return ResponseEntity.ok(new AuthResponse(true, "Username is valid"));
-    }
-
-    @PostMapping("/check-email-and-send-code")
-    public ResponseEntity<?> sendCode(@RequestBody String email){
-        //validation
-        if(authService.doesEmailExist(email)){
-            return ResponseEntity.ok(new AuthResponse(false,"Email already exist!"));
-        }
-
-        if(authService.sendCode(email)){
-            return ResponseEntity.ok(new AuthResponse(true, "Code sent successfully"));
-        }
-        return ResponseEntity.ok(new AuthResponse(false,"Error while sending code!"));
-    }
-
-    @PostMapping("/verify-code")
-    public ResponseEntity<?> verifyCode(@RequestBody String email, String code){
-        //validation
-        if(authService.verifyCode(email, code)){
-            return ResponseEntity.ok(new AuthResponse(true, "Code is verified!"));
-        }
-        return ResponseEntity.ok(new AuthResponse(false, "Invalid Code!"));
-    }
-
 
 }
 

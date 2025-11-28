@@ -2,15 +2,21 @@ package com.ECommerce.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
-
-@Table(name = "users")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "username"),
+                @UniqueConstraint(columnNames = "email")
+        })
 public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,22 +34,28 @@ public class Users {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
-    private String phone;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private Role role = Role.ROLE_USER;
 
     private String profileUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
     private String refreshToken;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    @Transient
-    private String code;
+    @Column(nullable = false, updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false, updatable = false)
+    @UpdateTimestamp
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 }
 

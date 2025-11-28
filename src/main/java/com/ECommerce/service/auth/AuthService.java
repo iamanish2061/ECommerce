@@ -4,7 +4,7 @@ import com.ECommerce.dto.request.EmailSenderRequest;
 import com.ECommerce.dto.request.auth.LoginRequest;
 import com.ECommerce.dto.request.auth.RefreshTokenRequest;
 import com.ECommerce.dto.request.auth.SignupRequest;
-import com.ECommerce.dto.response.auth.LoginResponse;
+import com.ECommerce.dto.response.auth.AuthResponse;
 import com.ECommerce.dto.response.auth.RefreshTokenResponse;
 import com.ECommerce.dto.response.auth.SignupResponse;
 import com.ECommerce.exception.ApplicationException;
@@ -14,15 +14,19 @@ import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.UserRepository;
 import com.ECommerce.service.EmailService;
 import com.ECommerce.service.JwtService;
+import com.ECommerce.utils.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -61,7 +65,8 @@ public class AuthService {
     }
 
 
-    public SignupResponse register(SignupRequest request) throws ApplicationException {
+    @Transactional
+    public AuthResponse register(SignupRequest request, HttpServletResponse response) throws ApplicationException {
 
         if(userRepo.findByUsername(request.username()).orElse(null) != null)
             throw new ApplicationException("Username is taken!", "USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
@@ -69,18 +74,40 @@ public class AuthService {
         if(userRepo.findByEmail(request.email()).orElse(null) != null)
             throw new ApplicationException("Email already exists!", "EMAIL_EXISTS", HttpStatus.BAD_REQUEST);
 
-        if(!verifyOtpCode(request.getEmail(), user.getCode()))
+        if(!verifyOtpCode(request.email(), request.code()))
             throw new ApplicationException("Invalid OTP code!", "INVALID_OTP_CODE", HttpStatus.BAD_REQUEST);
-        redisService.deleteCode(request.getEmail());
-        user.setPassword(encoder.encode(request.getPassword()));
+
+        if(!request.doesPasswordMatch())
+            throw new ApplicationException("Password do not match!", "PASSWORD_MISMATCH", HttpStatus.BAD_REQUEST);
 
 
+        redisService.deleteCode(request.email());
 
-        //baki xa sab set garna
-        return userRepo.save();
+        Users user = Users.builder()
+                .fullName(request.fullname())
+                .username(request.username())
+                .password(encoder.encode(request.password()))
+                .email(request.email())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Users savedUser = userRepo.save(user);
+
+        String accessToken = jwtService.generateAccessToken(new UserPrincipal(savedUser));
+        String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(savedUser));
+
+        savedUser.setRefreshToken(encoder.encode(refreshToken));
+        userRepo.save(savedUser);
+
+        //add refresh token to header
+        CookieUtils.setRefreshTokenCookie(response, refreshToken);
+
+        return new AuthResponse(accessToken, savedUser.getId(), savedUser.getFullName(), savedUser.getUsername(), savedUser.getEmail());
+
     }
 
-    public LoginResponse login(LoginRequest request){
+
+    public AuthResponse login(LoginRequest request, HttpServletResponse httpServletResponse){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
@@ -107,23 +134,61 @@ public class AuthService {
         return tokens;
     }
 
-    public RefreshTokenResponse refresh(RefreshTokenRequest request) {
-        String refreshToken = request.refreshToken();
-        Users user = userRepo.findByRefreshToken(refreshToken).orElse(null);
-        if (user == null || jwtService.validateToken(refreshToken, new UserPrincipal(user))) throw new RuntimeException("Invalid refresh token");
+    public AuthResponse refreshToken(HttpServletRequest request) throws ApplicationException{
+        String refreshToken = CookieUtils.getRefreshTokenFromCookie(request)
+                .orElseThrow(() -> new ApplicationException("Refresh token missing", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED));
 
-        String newAccessToken = jwtService.generateAccessToken(new UserPrincipal(user));
-        String newRefreshToken = jwtService.generateRefreshToken(new UserPrincipal(user));
+        // 1. Validate & extract user email from refresh token
+        String email = jwtService.extractUsername(refreshToken);
+        Users user = userRepo.findByUsername(email)
+                .orElseThrow(() -> new ApplicationException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND));
 
-        user.setRefreshToken(newRefreshToken);
+        // 2. Verify stored hash matches this refresh token
+        if (!encoder.matches(refreshToken, user.getRefreshTokenHash())) {
+            throw new ApplicationException("Invalid refresh token", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+        }
+
+        // 3. Check if token is expired
+        if (jwtService.isTokenExpired(refreshToken)) {
+            user.setRefreshTokenHash(null);
+            userRepo.save(user);
+            throw new ApplicationException("Refresh token expired", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
+        }
+
+        // 4. Generate NEW access + refresh tokens (rotation!)
+        String newAccessToken = jwtService.generateAccessToken(user);
+        String newRefreshToken = jwtService.generateRefreshToken(user);
+
+        // 5. Save new hashed refresh token (old one invalidated)
+        user.setRefreshTokenHash(encoder.encode(newRefreshToken));
         userRepo.save(user);
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", newAccessToken);
-        tokens.put("refreshToken", newRefreshToken);
-        return tokens;
+        // 6. Set new refresh token in HttpOnly cookie
+        CookieUtils.setRefreshTokenCookie(newRefreshToken);
+
+        return new AuthResponse(
+                newAccessToken,
+                user.getId(),
+                user.getFullName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 
+    public void logout(Authentication auth, HttpServletResponse response) {
+        if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
+            Users user = principal.getUser();
+            user.setRefreshTokenHash(null);
+            userRepo.save(user);
+        }
+
+        // Clear cookie
+        CookieUtils.clearRefreshTokenCookie(response);
+
+        // Optional: clear Spring Security context
+        SecurityContextHolder.clearContext();
+    }
 
 
 }

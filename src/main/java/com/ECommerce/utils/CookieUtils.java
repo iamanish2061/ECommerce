@@ -27,7 +27,7 @@ public class CookieUtils {
         Cookie cookie = new Cookie(COOKIE_NAME, token);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);                    // HTTPS only (set false in dev if needed)
-        cookie.setPath("/api/v1/auth");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(30 * 24 * 60 * 60);         // 30 days
         cookie.setAttribute("SameSite", "Strict");
         response.addCookie(cookie);
@@ -36,7 +36,7 @@ public class CookieUtils {
     public static void clearRefreshTokenCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie(COOKIE_NAME, "");
         cookie.setHttpOnly(true);
-        cookie.setPath("/api/v1/auth");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(0);
         response.addCookie(cookie);
     }

@@ -1,24 +1,19 @@
 package com.ECommerce.controller.auth;
 
 import com.ECommerce.dto.request.auth.LoginRequest;
-import com.ECommerce.dto.request.auth.RefreshTokenRequest;
 import com.ECommerce.dto.request.auth.SignupRequest;
 import com.ECommerce.dto.request.auth.VerifyOtpCodeRequest;
 import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.auth.AuthResponse;
-import com.ECommerce.dto.response.auth.RefreshTokenResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.service.auth.AuthService;
-import com.ECommerce.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.shaded.com.google.protobuf.Api;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

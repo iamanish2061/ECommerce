@@ -12,7 +12,12 @@ public record LoginRequest(
         @Pattern(regexp = "^[A-Za-z0-9_]+$", message = "Username can only contain letters, numbers, and underscores!")
         String username,
 
-
+        @NotBlank(message = "Password is required!")
+        @Size(min = 8, max = 50, message = "Password must be at least 8 characters!")
+        @Pattern(
+                regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!_*])(?=\\S+$).{8,}$",
+                message = "Password must contain at least one letter, one number, and one special character (@#$%^&+=!*_)!"
+        )
         String password,
         Role role
 ) {

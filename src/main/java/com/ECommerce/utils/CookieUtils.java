@@ -26,7 +26,7 @@ public class CookieUtils {
     public static void setRefreshTokenCookie(String token, HttpServletResponse response) {
         Cookie cookie = new Cookie(COOKIE_NAME, token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);                    // HTTPS only (set false in dev if needed)
+        cookie.setSecure(false);
         cookie.setPath("/api/auth");
         cookie.setMaxAge(30 * 24 * 60 * 60);         // 30 days
         cookie.setAttribute("SameSite", "Strict");

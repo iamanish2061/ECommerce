@@ -135,32 +135,32 @@ public class AuthService {
         String refreshToken = CookieUtils.getRefreshTokenFromCookie(request)
                 .orElseThrow(() -> new ApplicationException("Refresh token missing", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED));
 
-        // 1. Validate & extract user email from refresh token
+        // Validate & extract user email from refresh token
         String email = jwtService.extractUsername(refreshToken);
         Users user = userRepo.findByUsername(email)
                 .orElseThrow(() -> new ApplicationException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND));
 
-        // 2. Verify stored hash matches this refresh token
+        // Verify stored hash matches this refresh token
         if (!encoder.matches(refreshToken, user.getRefreshTokenHash())) {
             throw new ApplicationException("Invalid refresh token", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
         }
 
-        // 3. Check if token is expired
+        // Check if token is expired
         if (jwtService.isTokenExpired(refreshToken)) {
             user.setRefreshTokenHash(null);
             userRepo.save(user);
             throw new ApplicationException("Refresh token expired", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
         }
 
-        // 4. Generate NEW access + refresh tokens (rotation!)
+        // Generate NEW access + refresh tokens (rotation!)
         String newAccessToken = jwtService.generateAccessToken(user);
         String newRefreshToken = jwtService.generateRefreshToken(user);
 
-        // 5. Save new hashed refresh token (old one invalidated)
+        // Save new hashed refresh token (old one invalidated)
         user.setRefreshTokenHash(encoder.encode(newRefreshToken));
         userRepo.save(user);
 
-        // 6. Set new refresh token in HttpOnly cookie
+        // Set new refresh token in HttpOnly cookie
         CookieUtils.setRefreshTokenCookie(newRefreshToken);
 
         return new AuthResponse(

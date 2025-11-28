@@ -38,6 +38,7 @@ public class AuthController {
 
     @GetMapping("/check-email-and-send-otpCode")
     public ResponseEntity<ApiResponse<?>> sendOtpCode(
+//            validation
             @RequestBody
             String email
     ){

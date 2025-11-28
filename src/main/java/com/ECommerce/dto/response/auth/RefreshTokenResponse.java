@@ -1,4 +1,4 @@
 package com.ECommerce.dto.response.auth;
 
-public class RefreshTokenResponse {
+public record RefreshTokenResponse {
 }

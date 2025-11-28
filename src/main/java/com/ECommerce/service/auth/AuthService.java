@@ -2,11 +2,8 @@ package com.ECommerce.service.auth;
 
 import com.ECommerce.dto.request.EmailSenderRequest;
 import com.ECommerce.dto.request.auth.LoginRequest;
-import com.ECommerce.dto.request.auth.RefreshTokenRequest;
 import com.ECommerce.dto.request.auth.SignupRequest;
 import com.ECommerce.dto.response.auth.AuthResponse;
-import com.ECommerce.dto.response.auth.RefreshTokenResponse;
-import com.ECommerce.dto.response.auth.SignupResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.UserPrincipal;
 import com.ECommerce.model.Users;

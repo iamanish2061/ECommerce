@@ -25,7 +25,7 @@ public class AuthController {
 
     @GetMapping("/check-username-availability")
     public ResponseEntity<ApiResponse<?>> checkUserNameAvailability(
-
+//validation
             @RequestParam
             String username
     ){

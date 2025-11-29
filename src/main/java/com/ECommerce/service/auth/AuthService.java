@@ -19,13 +19,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 
 @Service
@@ -63,7 +62,9 @@ public class AuthService {
 
 
     @Transactional
-    public AuthResponse register(SignupRequest request, HttpServletResponse response) throws ApplicationException {
+    public AuthResponse register(
+            SignupRequest request, HttpServletResponse httpServletResponse
+    ) throws ApplicationException {
 
         if(userRepo.findByUsername(request.username()).orElse(null) != null)
             throw new ApplicationException("Username is taken!", "USERNAME_EXISTS", HttpStatus.BAD_REQUEST);
@@ -77,9 +78,7 @@ public class AuthService {
         if(!request.doesPasswordMatch())
             throw new ApplicationException("Password do not match!", "PASSWORD_MISMATCH", HttpStatus.BAD_REQUEST);
 
-
         redisService.deleteCode(request.email());
-
         Users user = Users.builder()
                 .fullName(request.fullname())
                 .username(request.username())
@@ -96,42 +95,54 @@ public class AuthService {
         savedUser.setRefreshToken(encoder.encode(refreshToken));
         userRepo.save(savedUser);
 
-        //add refresh token to header
-        CookieUtils.setRefreshTokenCookie(response, refreshToken);
+        CookieUtils.setRefreshTokenCookie(refreshToken, httpServletResponse);
 
-        return new AuthResponse(accessToken, savedUser.getId(), savedUser.getFullName(), savedUser.getUsername(), savedUser.getEmail());
+        return new AuthResponse(
+                accessToken,
+                savedUser.getId(),
+                savedUser.getFullName(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole()
+        );
 
     }
 
 
-    public AuthResponse login(LoginRequest request, HttpServletResponse httpServletResponse){
+    @Transactional
+    public AuthResponse login(
+            LoginRequest request, HttpServletResponse httpServletResponse
+    )throws ApplicationException{
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
         if (!authentication.isAuthenticated()){
-            Map<String,String> result =  new HashMap<>();
-            result.put("status","failed");
-            result.put("message", "Invalid Credentials!");
-            return result;
+            throw new ApplicationException("Invalid Credentials!", "INVALID_CREDENTIALS", HttpStatus.BAD_REQUEST);
         }
 
-        Users dbUser = userRepo.findByUsername(user.getUsername()).orElse(null);
+        Users dbUser = userRepo.findByUsername(request.username()).orElse(null);
 
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(new UserPrincipal(dbUser));
         String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(dbUser));
 
-        // Save refresh token in DB
-        dbUser.setRefreshToken(refreshToken);
+        dbUser.setRefreshToken(encoder.encode(refreshToken));
         userRepo.save(dbUser);
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", accessToken);
-        tokens.put("refreshToken", refreshToken);
-        return tokens;
+        return new AuthResponse(
+                accessToken,
+                dbUser.getId(),
+                dbUser.getFullName(),
+                dbUser.getUsername(),
+                dbUser.getEmail(),
+                dbUser.getRole()
+        );
     }
 
-    public AuthResponse refreshToken(HttpServletRequest request) throws ApplicationException{
+
+    public AuthResponse refreshToken(
+            HttpServletRequest request, HttpServletResponse httpServletResponse
+    ) throws ApplicationException{
         String refreshToken = CookieUtils.getRefreshTokenFromCookie(request)
                 .orElseThrow(() -> new ApplicationException("Refresh token missing", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED));
 
@@ -141,27 +152,27 @@ public class AuthService {
                 .orElseThrow(() -> new ApplicationException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND));
 
         // Verify stored hash matches this refresh token
-        if (!encoder.matches(refreshToken, user.getRefreshTokenHash())) {
+        if (!encoder.matches(refreshToken, user.getRefreshToken())) {
             throw new ApplicationException("Invalid refresh token", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
         }
 
         // Check if token is expired
         if (jwtService.isTokenExpired(refreshToken)) {
-            user.setRefreshTokenHash(null);
+            user.setRefreshToken(null);
             userRepo.save(user);
             throw new ApplicationException("Refresh token expired", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
         }
 
         // Generate NEW access + refresh tokens (rotation!)
-        String newAccessToken = jwtService.generateAccessToken(user);
-        String newRefreshToken = jwtService.generateRefreshToken(user);
+        String newAccessToken = jwtService.generateAccessToken(new UserPrincipal(user));
+        String newRefreshToken = jwtService.generateRefreshToken(new UserPrincipal(user));
 
         // Save new hashed refresh token (old one invalidated)
-        user.setRefreshTokenHash(encoder.encode(newRefreshToken));
+        user.setRefreshToken(encoder.encode(newRefreshToken));
         userRepo.save(user);
 
         // Set new refresh token in HttpOnly cookie
-        CookieUtils.setRefreshTokenCookie(newRefreshToken);
+        CookieUtils.setRefreshTokenCookie(newRefreshToken, httpServletResponse);
 
         return new AuthResponse(
                 newAccessToken,
@@ -169,7 +180,7 @@ public class AuthService {
                 user.getFullName(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getRole().name()
+                user.getRole()
         );
     }
 

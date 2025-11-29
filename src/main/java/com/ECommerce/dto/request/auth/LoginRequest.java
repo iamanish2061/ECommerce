@@ -1,6 +1,5 @@
 package com.ECommerce.dto.request.auth;
 
-import com.ECommerce.model.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -18,13 +17,5 @@ public record LoginRequest(
                 regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!_*])(?=\\S+$).{8,}$",
                 message = "Password must contain at least one letter, one number, and one special character (@#$%^&+=!*_)!"
         )
-        String password,
-        Role role
-) {
-    public Role assignRole(){
-        if(role == null){
-            return Role.ROLE_USER;
-        }
-        return role;
-    }
-}
+        String password
+) {}

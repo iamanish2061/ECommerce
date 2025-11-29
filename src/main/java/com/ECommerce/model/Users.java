@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -47,6 +48,9 @@ public class Users {
     private UserStatus status = UserStatus.ACTIVE;
 
     private String refreshToken;
+
+    @Column(nullable = false)
+    private Instant tokenValidAfter;
 
     @Column(nullable = false, updatable = false)
     @CreationTimestamp

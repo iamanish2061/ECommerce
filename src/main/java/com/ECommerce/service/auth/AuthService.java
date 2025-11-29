@@ -24,6 +24,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -75,7 +76,7 @@ public class AuthService {
         if(!verifyOtpCode(request.email(), request.code()))
             throw new ApplicationException("Invalid OTP code!", "INVALID_OTP_CODE", HttpStatus.BAD_REQUEST);
 
-        if(!request.doesPasswordMatch())
+        if(!request.password().equals(request.rePassword()))
             throw new ApplicationException("Password do not match!", "PASSWORD_MISMATCH", HttpStatus.BAD_REQUEST);
 
         redisService.deleteCode(request.email());
@@ -85,6 +86,7 @@ public class AuthService {
                 .password(encoder.encode(request.password()))
                 .email(request.email())
                 .createdAt(LocalDateTime.now())
+                .tokenValidAfter(Instant.EPOCH)
                 .build();
 
         Users savedUser = userRepo.save(user);
@@ -127,6 +129,8 @@ public class AuthService {
         String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(dbUser));
 
         dbUser.setRefreshToken(encoder.encode(refreshToken));
+        dbUser.setTokenValidAfter(Instant.EPOCH);
+
         userRepo.save(dbUser);
 
         return new AuthResponse(
@@ -184,17 +188,17 @@ public class AuthService {
         );
     }
 
-    public void logout(Authentication auth, HttpServletResponse response) {
+    public void logout(Authentication auth, HttpServletResponse httpServletResponse) {
         if (auth != null && auth.getPrincipal() instanceof UserPrincipal principal) {
             Users user = principal.getUser();
-            user.setRefreshTokenHash(null);
+            user.setRefreshToken(null);
+            user.setTokenValidAfter(Instant.now());
             userRepo.save(user);
         }
 
         // Clear cookie
-        CookieUtils.clearRefreshTokenCookie(response);
-
-        // Optional: clear Spring Security context
+        CookieUtils.clearRefreshTokenCookie(httpServletResponse);
+        // clear Spring Security context
         SecurityContextHolder.clearContext();
     }
 

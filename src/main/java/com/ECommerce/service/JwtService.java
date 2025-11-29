@@ -1,18 +1,26 @@
 package com.ECommerce.service;
 
+import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.UserPrincipal;
+import com.ECommerce.model.Users;
+import com.ECommerce.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContextException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 import java.util.function.Function;
 
+@RequiredArgsConstructor
 @Service
 public class JwtService {
 
@@ -24,6 +32,8 @@ public class JwtService {
 
     @Value("${jwt.refreshExpiration}")
     private long refreshTokenExpiration;
+
+    private final UserRepository userRepo;
 
     private SecretKey getKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
@@ -67,9 +77,19 @@ public class JwtService {
 
     }
 
-    public boolean validateToken(String token, UserDetails userDetails){
+    public boolean validateToken(String token, UserDetails userDetails) throws ApplicationException{
         final String userName =  extractUsername(token);
-        return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        Users user = userRepo.findByUsername(userName).orElseThrow(
+                ()-> new ApplicationException("User not found!", "USER_NOT_FOUND", HttpStatus.BAD_REQUEST)
+        );
+        if(!userName.equals(userDetails.getUsername())) return false;
+        if(isTokenExpired(token)) return false;
+
+        Instant tokenIssuedAt = extractClaim(token, Claims::getIssuedAt).toInstant();
+        if (tokenIssuedAt.isBefore(user.getTokenValidAfter()))
+            return false;
+
+        return true;
     }
 
     public boolean isTokenExpired(String token){
@@ -79,5 +99,6 @@ public class JwtService {
     private Date extractExpiration(String token){
         return extractClaim(token, Claims::getExpiration);
     }
+
 
 }

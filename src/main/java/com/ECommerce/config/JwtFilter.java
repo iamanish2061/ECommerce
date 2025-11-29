@@ -1,5 +1,6 @@
 package com.ECommerce.config;
 
+import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.service.CustomUserDetailsService;
 import com.ECommerce.service.JwtService;
 import jakarta.servlet.FilterChain;
@@ -7,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,12 +40,17 @@ public class JwtFilter extends OncePerRequestFilter {
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
             UserDetails userDetails =myUserDetailsService.loadUserByUsername(username);
 
-            if(jwtService.validateToken(token, userDetails)){
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails,null,  userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            try {
+                if(jwtService.validateToken(token, userDetails)){
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userDetails,null,  userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (ApplicationException e) {
+                throw new RuntimeException("Error validating token");
             }
         }
         filterChain.doFilter(request, response);

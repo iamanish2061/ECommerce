@@ -83,24 +83,29 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
-            @Valid @RequestBody LoginRequest request, HttpServletResponse httpResponse) {
+            @Valid @RequestBody LoginRequest request, HttpServletResponse httpResponse
+    )throws ApplicationException {
         AuthResponse authResponse = authService.login(request, httpResponse);
         return ResponseEntity.ok(ApiResponse.ok(authResponse, "Logged in successfully!"));
     }
 
+
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
             @RequestBody HttpServletRequest request, HttpServletResponse httpServletResponse
-    ) {
+    )throws ApplicationException {
         AuthResponse authResponse = authService.refreshToken(request, httpServletResponse);
         return ResponseEntity.ok(
                 ApiResponse.ok(authResponse, "Token refreshed successfully!")
         );
     }
 
+
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<?>> logout(HttpServletResponse response, Authentication authentication) {
-        authService.logout(authentication, response);
+    public ResponseEntity<ApiResponse<?>> logout(
+            HttpServletResponse httpServletResponse, Authentication authentication
+    ) {
+        authService.logout(authentication, httpServletResponse);
         return ResponseEntity.ok(
                 ApiResponse.ok("Logged out successfully"));
     }

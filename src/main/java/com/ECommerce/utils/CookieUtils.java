@@ -11,7 +11,7 @@ import java.util.Optional;
 @Component
 public class CookieUtils {
 
-    private static final String COOKIE_NAME = "refresh_token";
+    private static final String COOKIE_NAME = "refreshToken";
 
     public static Optional<String> getRefreshTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();

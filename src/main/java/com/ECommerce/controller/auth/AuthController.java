@@ -18,10 +18,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 @RequestMapping("/api/auth")
 public class AuthController {
 
@@ -42,12 +44,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Username is available."));
     }
 
-    @GetMapping("/check-email-and-send-otpCode")
+    @GetMapping("/check-email-and-send-otp-code")
     public ResponseEntity<ApiResponse<?>> sendOtpCode(
             @NotBlank(message = "Email is required!")
             @Email(message = "Please provide a valid email address!")
             @Size(max = 100, message = "Email is too long!")
-            @RequestBody
+            @RequestParam
             String email
     ){
         if(authService.doesEmailExist(email)){
@@ -61,7 +63,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Code sent successfully"));
     }
 
-    @GetMapping("/verify-otpCode")
+    @PostMapping("/verify-otpCode")
     public ResponseEntity<ApiResponse<?>> verifyOtpCode(
             @Valid @RequestBody VerifyOtpCodeRequest request
     ){
@@ -92,7 +94,7 @@ public class AuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
-            @RequestBody HttpServletRequest request, HttpServletResponse httpServletResponse
+            HttpServletRequest request, HttpServletResponse httpServletResponse
     )throws ApplicationException {
         AuthResponse authResponse = authService.refreshToken(request, httpServletResponse);
         return ResponseEntity.ok(

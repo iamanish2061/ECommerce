@@ -198,11 +198,15 @@ public class AuthService {
     @Transactional
     public AuthResponse setTokenForUserContinuingWithoutResettingPassword(
             String username,
+            String code,
             HttpServletResponse httpServletResponse
     ) throws ApplicationException {
         Users user = userRepo.findByUsername(username).orElse(null);
         if(user == null){
             throw new ApplicationException("User not found!", "USER_NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }
+        if(!verifyOtpCode(user.getEmail(), code)){
+            throw new ApplicationException("Invalid OTP code!", "INVALID_OTP_CODE", HttpStatus.BAD_REQUEST);
         }
         redisService.deleteCode(user.getEmail());
         String accessToken = jwtService.generateAccessToken(new UserPrincipal(user));

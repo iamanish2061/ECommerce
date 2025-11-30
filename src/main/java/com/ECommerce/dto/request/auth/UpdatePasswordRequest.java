@@ -11,7 +11,7 @@ public record UpdatePasswordRequest(
         String username,
 
         @NotBlank(message = "Verification code is required!")
-        @Pattern(regexp = "^\\d{6}$", message = "Verification code must be exactly 6 digits!")
+        @Pattern(regexp = "^\\d{6}$", message = "Invalid OTP Code!")
         String code,
 
         @ValidPassword

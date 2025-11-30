@@ -8,6 +8,8 @@ import com.ECommerce.service.auth.AuthService;
 import com.ECommerce.validation.ValidUsername;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +52,14 @@ public class ForgotPasswordController {
     //for no
     @GetMapping("/continue-without-login")
     public ResponseEntity<ApiResponse<AuthResponse>> setTokenForUserContinuingWithoutResettingPassword(
-        @ValidUsername @RequestParam String username, HttpServletResponse httpServletResponse
+        @ValidUsername @RequestParam String username,
+
+        @NotBlank(message = "Verification code is required!")
+        @Pattern(regexp = "^\\d{6}$", message = "Invalid OTP Code!")
+        @RequestParam String code,
+        HttpServletResponse httpServletResponse
     ) throws ApplicationException {
-        AuthResponse authResponse = authService.setTokenForUserContinuingWithoutResettingPassword(username, httpServletResponse);
+        AuthResponse authResponse = authService.setTokenForUserContinuingWithoutResettingPassword(username, code, httpServletResponse);
         return ResponseEntity.ok(ApiResponse.ok(authResponse, "Token set successfully"));
     }
 

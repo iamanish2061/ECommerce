@@ -1,12 +1,9 @@
 package com.ECommerce.dto.request;
 
-
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
+import com.ECommerce.validation.ValidEmail;
 
 public record EmailSenderRequest(
-        @Email(message = "Invalid Email!")
-        @NotNull(message = "Email is required!")
+        @ValidEmail
         String to,
         String subject,
         String body)

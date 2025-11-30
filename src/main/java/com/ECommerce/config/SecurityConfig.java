@@ -29,16 +29,11 @@ public class SecurityConfig {
         return httpSecurity
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers(
-                                "/",
-                                "/auth/**",
-                                "/user/**",
-                                "/admin/**",
-                                "/ws/**",
-                                "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/user/**").hasAuthority("ROLE_USER")
+                        .requestMatchers("/admin/**", "/api/admin/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/driver/**", "/api/driver/**").hasAuthority("ROLE_DRIVER")
+                        .requestMatchers("/staff/**", "/api/staff/**").hasAuthority("ROLE_STAFF")
+                        .requestMatchers("/user/**", "/api/user/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_DRIVER", "ROLE_STAFF")
+                        .requestMatchers("/auth/**", "/ws/**", "/api/auth/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)

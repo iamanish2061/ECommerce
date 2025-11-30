@@ -3,6 +3,7 @@ package com.ECommerce.service.auth;
 import com.ECommerce.dto.request.EmailSenderRequest;
 import com.ECommerce.dto.request.auth.LoginRequest;
 import com.ECommerce.dto.request.auth.SignupRequest;
+import com.ECommerce.dto.request.auth.UpdatePasswordRequest;
 import com.ECommerce.dto.response.auth.AuthResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.UserPrincipal;
@@ -14,7 +15,12 @@ import com.ECommerce.service.JwtService;
 import com.ECommerce.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -94,7 +100,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(new UserPrincipal(savedUser));
         String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(savedUser));
 
-        savedUser.setRefreshToken(encoder.encode(refreshToken));
+        savedUser.setRefreshToken(DigestUtils.sha256Hex(refreshToken));
         userRepo.save(savedUser);
 
         CookieUtils.setRefreshTokenCookie(refreshToken, httpServletResponse);
@@ -128,7 +134,7 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(new UserPrincipal(dbUser));
         String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(dbUser));
 
-        dbUser.setRefreshToken(encoder.encode(refreshToken));
+        dbUser.setRefreshToken(DigestUtils.sha256Hex(refreshToken));
         dbUser.setTokenValidAfter(Instant.EPOCH);
 
         userRepo.save(dbUser);
@@ -156,7 +162,7 @@ public class AuthService {
                 .orElseThrow(() -> new ApplicationException("User not found", "NOT_FOUND", HttpStatus.NOT_FOUND));
 
         // Verify stored hash matches this refresh token
-        if (!encoder.matches(refreshToken, user.getRefreshToken())) {
+        if (!DigestUtils.sha256Hex(refreshToken).equals(user.getRefreshToken())) {
             throw new ApplicationException("Invalid refresh token", "UNAUTHORIZED", HttpStatus.UNAUTHORIZED);
         }
 
@@ -172,7 +178,7 @@ public class AuthService {
         String newRefreshToken = jwtService.generateRefreshToken(new UserPrincipal(user));
 
         // Save new hashed refresh token (old one invalidated)
-        user.setRefreshToken(encoder.encode(newRefreshToken));
+        user.setRefreshToken(DigestUtils.sha256Hex(newRefreshToken));
         userRepo.save(user);
 
         // Set new refresh token in HttpOnly cookie
@@ -202,5 +208,81 @@ public class AuthService {
         SecurityContextHolder.clearContext();
     }
 
+
+    //forgot password
+    @Transactional
+    public AuthResponse setTokenForUserContinuingWithoutResettingPassword(
+            String username,
+            String email,
+            HttpServletResponse httpServletResponse
+    ) throws ApplicationException {
+        Users user = userRepo.findByUsernameAndEmail(username, email).orElse(null);
+        if(user == null){
+            throw new ApplicationException("User not found!", "USER_NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }
+
+        redisService.deleteCode(email);
+
+        String accessToken = jwtService.generateAccessToken(new UserPrincipal(user));
+        String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(user));
+
+        user.setRefreshToken(DigestUtils.sha256Hex(refreshToken));
+        userRepo.save(user);
+
+        CookieUtils.setRefreshTokenCookie(refreshToken, httpServletResponse);
+
+        return new AuthResponse(
+                accessToken,
+                user.getId(),
+                user.getFullName(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+
+
+    }
+
+
+    @Transactional
+    public AuthResponse updatePassword(
+            UpdatePasswordRequest request, HttpServletResponse httpServletResponse
+    ) throws ApplicationException{
+        Users user= userRepo.findByUsernameAndEmail(request.username(), request.email()).orElse(null);
+
+        if(user == null)
+            throw new ApplicationException("User not found!", "USER_NOT_FOUND", HttpStatus.BAD_REQUEST);
+
+        if(!verifyOtpCode(request.email(), request.code())){
+            throw new ApplicationException("Invalid OTP code!", "INVALID_OTP_CODE", HttpStatus.BAD_REQUEST);
+        }
+        if(!request.password().equals(request.rePassword()))
+            throw new ApplicationException("Password do not match!", "PASSWORD_MISMATCH", HttpStatus.BAD_REQUEST);
+
+        redisService.deleteCode(request.email());
+
+        user.setUpdatedAt(LocalDateTime.now());
+        user.setPassword(encoder.encode(request.password()));
+
+        Users savedUser = userRepo.save(user);
+
+        String accessToken = jwtService.generateAccessToken(new UserPrincipal(savedUser));
+        String refreshToken = jwtService.generateRefreshToken(new UserPrincipal(savedUser));
+
+        savedUser.setRefreshToken(DigestUtils.sha256Hex(refreshToken));
+        userRepo.save(savedUser);
+
+        CookieUtils.setRefreshTokenCookie(refreshToken, httpServletResponse);
+
+        return new AuthResponse(
+                accessToken,
+                savedUser.getId(),
+                savedUser.getFullName(),
+                savedUser.getUsername(),
+                savedUser.getEmail(),
+                savedUser.getRole()
+        );
+    }
 
 }

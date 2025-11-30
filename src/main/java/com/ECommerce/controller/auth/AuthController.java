@@ -7,6 +7,9 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.auth.AuthResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.service.auth.AuthService;
+import com.ECommerce.validation.ValidEmail;
+import com.ECommerce.validation.ValidId;
+import com.ECommerce.validation.ValidUsername;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -30,12 +33,8 @@ public class AuthController {
     private final AuthService authService;
 
     @GetMapping("/check-username-availability")
-    public ResponseEntity<ApiResponse<?>> checkUserNameAvailability(
-            @NotBlank(message = "Username is required!")
-            @Size(min = 4, max = 20, message = "Username must be between 4 and 20 characters!")
-            @Pattern(regexp = "^[A-Za-z0-9_]+$", message = "Username can only contain letters, numbers, and underscores!")
-            @RequestParam
-            String username
+    public ResponseEntity<ApiResponse<String>> checkUserNameAvailability(
+            @ValidUsername @RequestParam String username
     ){
         if(authService.doesUserNameExist(username)){
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -45,12 +44,8 @@ public class AuthController {
     }
 
     @GetMapping("/check-email-and-send-otp-code")
-    public ResponseEntity<ApiResponse<?>> sendOtpCode(
-            @NotBlank(message = "Email is required!")
-            @Email(message = "Please provide a valid email address!")
-            @Size(max = 100, message = "Email is too long!")
-            @RequestParam
-            String email
+    public ResponseEntity<ApiResponse<String>> sendOtpCode(
+            @ValidEmail @RequestParam String email
     ){
         if(authService.doesEmailExist(email)){
             return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -64,7 +59,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify-otpCode")
-    public ResponseEntity<ApiResponse<?>> verifyOtpCode(
+    public ResponseEntity<ApiResponse<String>> verifyOtpCode(
             @Valid @RequestBody VerifyOtpCodeRequest request
     ){
         if(authService.verifyOtpCode(request.email(), request.code())){

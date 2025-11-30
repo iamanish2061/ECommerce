@@ -45,7 +45,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             errors.put(error.getField(), error.getDefaultMessage());
         }
 
-        ApiResponse<?> apiResponse = ApiResponse.error("Validation failed", "VALIDATION_ERROR");
+        ApiResponse<?> apiResponse = ApiResponse.validationError("Validation failed", errors);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
 
     }

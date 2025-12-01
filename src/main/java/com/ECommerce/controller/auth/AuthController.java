@@ -8,15 +8,10 @@ import com.ECommerce.dto.response.auth.AuthResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.service.auth.AuthService;
 import com.ECommerce.validation.ValidEmail;
-import com.ECommerce.validation.ValidId;
 import com.ECommerce.validation.ValidUsername;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +27,7 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @GetMapping("/check-username-availability")
+    @GetMapping("/username-availability")
     public ResponseEntity<ApiResponse<String>> checkUserNameAvailability(
             @ValidUsername @RequestParam String username
     ){
@@ -43,7 +38,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Username is available."));
     }
 
-    @GetMapping("/check-email-and-send-otp-code")
+    @GetMapping("/send-otp-code")
     public ResponseEntity<ApiResponse<String>> sendOtpCode(
             @ValidEmail @RequestParam String email
     ){
@@ -58,7 +53,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok("Code sent successfully"));
     }
 
-    @PostMapping("/verify-otpCode")
+    @PostMapping("/verify-otp-code")
     public ResponseEntity<ApiResponse<String>> verifyOtpCode(
             @Valid @RequestBody VerifyOtpCodeRequest request
     ){

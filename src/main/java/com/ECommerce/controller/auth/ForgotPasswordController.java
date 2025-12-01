@@ -24,7 +24,7 @@ public class ForgotPasswordController {
 
     private final AuthService authService;
 
-    @GetMapping("check-username-exists-and-return-email")
+    @GetMapping("/username-exists")
     public ResponseEntity<ApiResponse<String>> checkUsernameExists (
         @ValidUsername @RequestParam String username
     )throws ApplicationException{
@@ -36,7 +36,7 @@ public class ForgotPasswordController {
         return ResponseEntity.ok(ApiResponse.ok(encodedEmail, "Username is valid!"));
     }
 
-    @GetMapping("send-otp-code-for-forgot-password")
+    @GetMapping("/send-otp-code-to-recover")
     public ResponseEntity<ApiResponse<String>> sendCodeForForgotPassword(
         @ValidUsername @RequestParam String username
     ) throws ApplicationException {
@@ -63,7 +63,7 @@ public class ForgotPasswordController {
         return ResponseEntity.ok(ApiResponse.ok(authResponse, "Token set successfully"));
     }
 
-    @PostMapping("update-password")
+    @PostMapping("/update-password")
     public ResponseEntity<ApiResponse<AuthResponse>> updatePassword(
             @Valid @RequestBody UpdatePasswordRequest request, HttpServletResponse httpServletResponse
     ) throws ApplicationException {

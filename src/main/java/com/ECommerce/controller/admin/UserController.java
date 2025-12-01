@@ -4,39 +4,77 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.admin.GetAllUserResponse;
 import com.ECommerce.dto.response.admin.SingleUserDetailResponse;
 import com.ECommerce.exception.ApplicationException;
+import com.ECommerce.model.OrderModel;
+import com.ECommerce.model.Role;
+import com.ECommerce.model.UserStatus;
 import com.ECommerce.service.admin.UserService;
 import com.ECommerce.validation.ValidId;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/admin/users")
 public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/users")
+    @GetMapping()
     public ResponseEntity<ApiResponse<List<GetAllUserResponse>>> getAllUsers(){
         //pagination
         List<GetAllUserResponse> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.ok(users, "Fetched info of all users"));
     }
 
-    @GetMapping("/user/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SingleUserDetailResponse>> getSingleUser(
-            @ValidId @PathVariable Long id
+        @ValidId @PathVariable Long id
     )throws ApplicationException {
         SingleUserDetailResponse response = userService.getSingleUserInfo(id);
         return ResponseEntity.ok(ApiResponse.ok(response, "User detail fetched successfully"));
     }
 
+    @PutMapping("/role/{id}")
+    public ResponseEntity<ApiResponse<?>> updateRole(
+        @ValidId @PathVariable Long id,
+        @NotBlank(message = "Role is required!")
+        @RequestParam Role role
+    )throws ApplicationException{
+        if(userService.updateRole(id, role)){
+            return ResponseEntity.ok(ApiResponse.ok("Role updated successfully"));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Failed to update role!", "FAILED_TO_UPDATE_ROLE"));
+    }
+
+    @PutMapping("/status/{id}")
+    public ResponseEntity<ApiResponse<?>> updateStatus(
+            @ValidId @PathVariable Long id,
+            @NotBlank(message = "Status is required!")
+            @RequestParam UserStatus status
+    )throws ApplicationException{
+        if(userService.updateStatus(id, status)){
+            return ResponseEntity.ok(ApiResponse.ok("Status updated successfully"));
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Failed to update status!", "FAILED_TO_UPDATE_STATUS"));
+    }
+
+
+    //to be completed
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<ApiResponse<List<OrderModel>>> getAllOrders(
+            @ValidId @PathVariable Long id
+    ){
+        return ResponseEntity.ok(ApiResponse.ok(new ArrayList<>(), "Order fetched"));
+    }
 
 }

@@ -7,7 +7,7 @@ import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.OrderModel;
 import com.ECommerce.model.Role;
 import com.ECommerce.model.UserStatus;
-import com.ECommerce.service.admin.UserService;
+import com.ECommerce.service.admin.AdminUserService;
 import com.ECommerce.validation.ValidId;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/admin/users")
-public class UserController {
+public class AdminUserController {
 
-    private final UserService userService;
+    private final AdminUserService userService;
 
     @GetMapping()
     public ResponseEntity<ApiResponse<List<GetAllUserResponse>>> getAllUsers(){
@@ -70,11 +70,12 @@ public class UserController {
 
 
     //to be completed
+    //bakiiiiiiiiii
     @GetMapping("/orders/{id}")
     public ResponseEntity<ApiResponse<List<OrderModel>>> getAllOrders(
             @ValidId @PathVariable Long id
     ){
-        return ResponseEntity.ok(ApiResponse.ok(new ArrayList<>(), "Order fetched"));
+        return ResponseEntity.ok(ApiResponse.ok(userService.getAllOrdersOf(id), "Fetched."));
     }
 
 }

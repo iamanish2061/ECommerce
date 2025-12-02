@@ -3,6 +3,7 @@ package com.ECommerce.service.admin;
 import com.ECommerce.dto.response.admin.GetAllUserResponse;
 import com.ECommerce.dto.response.admin.SingleUserDetailResponse;
 import com.ECommerce.exception.ApplicationException;
+import com.ECommerce.model.OrderModel;
 import com.ECommerce.model.Role;
 import com.ECommerce.model.UserStatus;
 import com.ECommerce.model.Users;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class UserService {
+public class AdminUserService {
 
     private final UserRepository userRepository;
 
@@ -43,7 +44,8 @@ public class UserService {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getUpdatedAt()
         );
     }
 
@@ -63,5 +65,13 @@ public class UserService {
         user.setStatus(status);
         userRepository.save(user);
         return true;
+    }
+
+
+
+    //bakiiiiiiiiiiiiii
+
+    public List<OrderModel> getAllOrdersOf(Long id){
+        return null;
     }
 }

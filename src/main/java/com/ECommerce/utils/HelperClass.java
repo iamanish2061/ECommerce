@@ -18,4 +18,16 @@ public class HelperClass {
         return maskedString.toString();
     }
 
+    public static String generateSlug(String name){
+        if (name == null || name.isBlank()) return "";
+
+        return name.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .trim()
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+    }
+
+
 }

@@ -1,8 +1,8 @@
 package com.ECommerce.controller.user;
 
 import com.ECommerce.dto.response.ApiResponse;
-import com.ECommerce.dto.response.admin.AllProductsResponse;
-import com.ECommerce.dto.response.admin.SingleProductResponse;
+import com.ECommerce.dto.response.admin.product.AllProductsResponse;
+import com.ECommerce.dto.response.admin.product.SingleProductResponse;
 import com.ECommerce.service.user.ProductService;
 import com.ECommerce.validation.ValidId;
 import lombok.RequiredArgsConstructor;

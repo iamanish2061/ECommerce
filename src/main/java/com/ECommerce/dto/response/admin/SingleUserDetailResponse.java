@@ -12,5 +12,6 @@ public record SingleUserDetailResponse(
     String email,
     Role role,
     UserStatus status,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    LocalDateTime updatedAt
 ) {}

@@ -78,10 +78,10 @@ public class AuthService {
             throw new ApplicationException("Password do not match!", "PASSWORD_MISMATCH", HttpStatus.BAD_REQUEST);
         redisService.deleteCode(request.email());
         Users user = Users.builder()
-                .fullName(request.fullname())
-                .username(request.username())
-                .password(encoder.encode(request.password()))
-                .email(request.email())
+                .fullName(request.fullname().trim())
+                .username(request.username().trim())
+                .password(encoder.encode(request.password().trim()))
+                .email(request.email().trim())
                 .createdAt(LocalDateTime.now())
                 .tokenValidAfter(Instant.EPOCH)
                 .build();

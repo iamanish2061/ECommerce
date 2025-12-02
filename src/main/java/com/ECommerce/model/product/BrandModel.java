@@ -28,6 +28,7 @@ public class BrandModel {
     @Column(nullable = false, unique = true, length = 120)
     private String slug;
 
+    @Column(name = "logo_url")
     private String logoUrl;
 
     @OneToMany(mappedBy = "brand")

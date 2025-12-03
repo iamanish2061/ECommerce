@@ -1,8 +1,10 @@
 package com.ECommerce.controller.user;
 
 import com.ECommerce.dto.response.ApiResponse;
-import com.ECommerce.dto.response.admin.product.AllProductsResponse;
-import com.ECommerce.dto.response.admin.product.SingleProductResponse;
+import com.ECommerce.dto.response.product.AllProductsResponse;
+import com.ECommerce.dto.response.product.SingleProductResponse;
+import com.ECommerce.dto.response.product.TagResponse;
+import com.ECommerce.service.admin.AdminProductService;
 import com.ECommerce.service.user.ProductService;
 import com.ECommerce.validation.ValidId;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +20,17 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/user/products")
+@RequestMapping("/api/products")
 public class ProductController {
 
     private final ProductService productService;
+
+    @GetMapping("/tags")
+    public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
+        List<TagResponse> tags = productService.getAllTags();
+        return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
+    }
+
 
     @GetMapping()
     public ResponseEntity<ApiResponse<List<AllProductsResponse>>> getAllProducts(){

@@ -1,8 +1,8 @@
 package com.ECommerce.controller.admin;
 
 import com.ECommerce.dto.response.ApiResponse;
-import com.ECommerce.dto.response.admin.GetAllUserResponse;
-import com.ECommerce.dto.response.admin.SingleUserDetailResponse;
+import com.ECommerce.dto.response.user.GetAllUserResponse;
+import com.ECommerce.dto.response.user.SingleUserDetailResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.OrderModel;
 import com.ECommerce.model.Role;
@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Validated

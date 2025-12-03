@@ -1,7 +1,7 @@
 package com.ECommerce.service.admin;
 
-import com.ECommerce.dto.response.admin.GetAllUserResponse;
-import com.ECommerce.dto.response.admin.SingleUserDetailResponse;
+import com.ECommerce.dto.response.user.GetAllUserResponse;
+import com.ECommerce.dto.response.user.SingleUserDetailResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.OrderModel;
 import com.ECommerce.model.Role;

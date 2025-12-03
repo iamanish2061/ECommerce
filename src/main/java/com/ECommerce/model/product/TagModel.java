@@ -31,4 +31,9 @@ public class TagModel {
     @ManyToMany(mappedBy = "tags")
     @JsonIgnoreProperties("tags")
     private Set<ProductModel> products = new HashSet<>();
+
+    public TagModel(String name, String slug) {
+        this.name = name;
+        this.slug = slug;
+    }
 }

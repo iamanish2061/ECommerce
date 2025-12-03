@@ -1,10 +1,9 @@
 package com.ECommerce.utils;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.ECommerce.dto.request.product.AddProductImageRequest;
+import com.ECommerce.exception.ApplicationException;
+import com.ECommerce.model.product.ProductImageModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -12,46 +11,85 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
+import java.util.Set;
 
-@RestController
-@RequestMapping("/admin/api/upload")
 public class ImageUploadHelper {
 
-    private static final Path UPLOAD_DIR = Paths.get("src/main/resources/static/uploads/products").toAbsolutePath().normalize();
+    private static final Path UPLOAD_DIR = Paths.get("uploads/products").toAbsolutePath();
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+            "image/jpeg", "image/jpg", "image/png", "image/webp"
+    );
 
-    @PostMapping("/image")
-    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
-        // Validation
+    public static ProductImageModel uploadImage(MultipartFile file, AddProductImageRequest request) throws ApplicationException {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("File is empty");
+            throw new ApplicationException("File is empty!", "FILE_IS_EMPTY", HttpStatus.BAD_REQUEST);
         }
-
-        String contentType = file.getContentType();
-        if (contentType == null ||
-                !(contentType.equals("image/jpeg") ||
-                        contentType.equals("image/jpg") ||
-                        contentType.equals("image/png"))) {
-            return ResponseEntity.badRequest().body("Only JPG, JPEG, PNG allowed");
-        }
-
         if (file.getSize() > 5 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body("File too large! Max 5MB");
+            throw new ApplicationException("File too large! Max 5MB", "FILE_IS_TOO_BIG", HttpStatus.BAD_REQUEST);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType.toLowerCase())) {
+            throw new ApplicationException("Only JPEG, PNG, and WebP images are allowed", "INVALID_TYPE", HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        }
+
+        String extension = getFileExtension(file.getOriginalFilename());
+        if(extension.isEmpty()){
+            extension = getExtensionFromContentType(contentType);
+        }
+
+
+        String basename = HelperClass.generateSlug(request.name());
+        String filename=basename+"."+extension;
+        Path targetPath = UPLOAD_DIR.resolve(filename);
+        Integer counter = 1;
+        while(Files.exists(targetPath)){
+               filename = basename+"-"+counter.toString()+"."+extension;
+               counter++;
+               targetPath = UPLOAD_DIR.resolve(filename);
         }
 
         try {
-            String filename = UUID.randomUUID() + "_" + file.getOriginalFilename().replaceAll("\\s+", "_");
-
-            Path targetPath = UPLOAD_DIR.resolve(filename);
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
-            String fileUrl = "/uploads/products/" + filename;
-
-            return ResponseEntity.ok().body(new UploadResponse("success", fileUrl, filename));
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Upload failed: " + e.getMessage());
+            throw new ApplicationException("Failed to save image", "IO_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        String fileUrl = "/uploads/products/" + filename;
+        ProductImageModel img = new ProductImageModel();
+        img.setUrl(fileUrl);
+        img.setAltText(request.altText());
+        img.setSortOrder(request.sortOrder());
+        img.setThumbnail(request.thumbnail());
+        return img;
+
     }
 
-    record UploadResponse(String status, String url, String filename) {}
+    public static String getFileExtension(String filename) {
+        if (filename == null || filename.isEmpty()) {
+            return "";
+        }
+        int lastDotIndex = filename.lastIndexOf('.');
+        if (lastDotIndex > 0 && lastDotIndex < filename.length() - 1) {
+            return filename.substring(lastDotIndex + 1).toLowerCase();
+        }
+
+        return "";
+    }
+
+    private static String getExtensionFromContentType(String contentType) {
+        return switch (contentType.toLowerCase()) {
+            case "image/jpeg", "image/jpg" -> "jpg";
+            case "image/png" -> "png";
+            case "image/webp" -> "webp";
+            default -> "jpg";
+        };
+    }
+
 }
+
+
+
+
+
+
+

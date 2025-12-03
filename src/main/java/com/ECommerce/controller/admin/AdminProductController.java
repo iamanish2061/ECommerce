@@ -2,11 +2,12 @@ package com.ECommerce.controller.admin;
 
 import com.ECommerce.dto.request.product.*;
 import com.ECommerce.dto.response.ApiResponse;
+import com.ECommerce.dto.response.product.AdminSingleProductResponse;
 import com.ECommerce.dto.response.product.AllProductsResponse;
 import com.ECommerce.dto.response.product.SingleProductResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.service.admin.AdminProductService;
-import com.ECommerce.service.user.ProductService;
+import com.ECommerce.service.ProductService;
 import com.ECommerce.validation.ValidId;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -57,7 +58,8 @@ public class AdminProductController {
         @Valid @RequestPart("addBrandRequest") AddBrandRequest addBrandRequest,
         @RequestPart("logo") MultipartFile logo
     ){
-
+        adminProductService.addBrand(addBrandRequest, logo);
+        return ResponseEntity.ok(ApiResponse.ok("Brand added successfully"));
     }
 
     @PostMapping(value = "/category", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,7 +67,8 @@ public class AdminProductController {
         @Valid @RequestPart("addCategoryRequest")AddCategoryRequest addCategoryRequest,
         @RequestPart("imageUrl") MultipartFile imageUrl
     ){
-
+        adminProductService.addCategory(addCategoryRequest, imageUrl);
+        return ResponseEntity.ok(ApiResponse.ok("Category added successfully"));
     }
 
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -73,7 +76,8 @@ public class AdminProductController {
         @Valid @RequestPart("addProductImageRequest") AddProductImageRequest addProductImageRequest,
         @RequestPart("url") MultipartFile url
     ){
-
+        adminProductService.addImage(addProductImageRequest, url);
+        return ResponseEntity.ok(ApiResponse.ok("Brand added successfully"));
     }
 
 
@@ -91,17 +95,12 @@ public class AdminProductController {
                 .body(ApiResponse.ok(response, "New product added successfully"));
     }
 
-   @GetMapping("/")
-    public ResponseEntity<ApiResponse<List<AllProductsResponse>>> getAllProducts(){
-        List<AllProductsResponse> products = productService.getAllProducts();
-        return ResponseEntity.ok(ApiResponse.ok(products, "Fetched successfully"));
-    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<SingleProductResponse>> getDetailOfProduct(
+    public ResponseEntity<ApiResponse<AdminSingleProductResponse>> getAdminDetailOfProduct(
             @ValidId @PathVariable Long id
     ){
-        SingleProductResponse product = productService.getDetailOfProduct(id);
+        AdminSingleProductResponse product = adminProductService.getAdminDetailOfProduct(id);
         return ResponseEntity.ok(ApiResponse.ok(product, "Fetched successfully"));
     }
 

@@ -1,11 +1,8 @@
-package com.ECommerce.controller.user;
+package com.ECommerce.controller;
 
 import com.ECommerce.dto.response.ApiResponse;
-import com.ECommerce.dto.response.product.AllProductsResponse;
-import com.ECommerce.dto.response.product.SingleProductResponse;
-import com.ECommerce.dto.response.product.TagResponse;
-import com.ECommerce.service.admin.AdminProductService;
-import com.ECommerce.service.user.ProductService;
+import com.ECommerce.dto.response.product.*;
+import com.ECommerce.service.ProductService;
 import com.ECommerce.validation.ValidId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +28,17 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
     }
 
+    @GetMapping("/brands")
+    public ResponseEntity<ApiResponse<List<BrandResponse>>> getAllBrands(){
+        List<BrandResponse> brands = productService.getAllBrands();
+        return ResponseEntity.ok(ApiResponse.ok(brands, "Brands fetched"));
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(){
+        List<CategoryResponse> categories = productService.getAllCategories();
+        return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
+    }
 
     @GetMapping()
     public ResponseEntity<ApiResponse<List<AllProductsResponse>>> getAllProducts(){

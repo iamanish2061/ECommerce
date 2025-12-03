@@ -4,11 +4,7 @@ import com.ECommerce.dto.request.product.AddProductImageRequest;
 import com.ECommerce.dto.request.product.AddProductRequest;
 
 import com.ECommerce.dto.request.product.AddTagRequest;
-import com.ECommerce.dto.response.product.BrandResponse;
-import com.ECommerce.dto.response.product.CategoryResponse;
-import com.ECommerce.dto.response.product.ProductImageResponse;
-import com.ECommerce.dto.response.product.TagResponse;
-import com.ECommerce.dto.response.product.SingleProductResponse;
+import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.product.*;
 import com.ECommerce.repository.BrandRepository;
@@ -166,6 +162,40 @@ public class AdminProductService {
                 );
     }
 
+    public AdminSingleProductResponse getAdminDetailOfProduct(Long id) {
+        ProductModel product = productRepository.findById(id).orElseThrow(
+                ()-> new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+                SingleProductResponse s = new SingleProductResponse(
+                        product.getId(),
+                        product.getSku(),
+                        product.getTitle(),
+                        product.getShortDescription(),
+                        product.getDescription(),
+                        new BrandResponse(
+                                product.getBrand().getName(),
+                                product.getBrand().getSlug(),
+                                product.getBrand().getLogoUrl()
+                        ),
+                        new CategoryResponse(
+                                product.getCategory().getName(),
+                                product.getCategory().getSlug(),
+                                product.getCategory().getImageUrl()
+                        ),
+                        product.getSellingPrice(),
+                        product.getStock(),
+                        product.getSizeMl(),
+                        product.getTags().stream()
+                                .map(tag-> new TagResponse(tag.getName(), tag.getSlug()))
+                                .toList(),
+                        product.getImages().stream()
+                                .map(img-> new ProductImageResponse(img.getUrl(), img.getAltText(), img.isThumbnail()))
+                                .toList()
+                );
+        return new AdminSingleProductResponse(s, product.getBasePrice());
+    }
+
+
     public boolean updatePrice(Long id, Double price) {
         return false;
     }
@@ -173,7 +203,6 @@ public class AdminProductService {
     public boolean updateQuantity(Long id, int quantity) {
         return false;
     }
-
 
 
 

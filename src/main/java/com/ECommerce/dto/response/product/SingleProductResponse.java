@@ -1,10 +1,11 @@
-package com.ECommerce.dto.response.admin.product;
+package com.ECommerce.dto.response.product;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 public record SingleProductResponse(
     Long id,
+    String sku,
     String title,
     String shortDescription,
     String description,

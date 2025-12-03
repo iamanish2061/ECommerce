@@ -1,4 +1,4 @@
-package com.ECommerce.dto.response.admin;
+package com.ECommerce.dto.response.user;
 
 import com.ECommerce.model.Role;
 import com.ECommerce.model.UserStatus;

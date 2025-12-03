@@ -1,4 +1,4 @@
-package com.ECommerce.dto.response.admin.product;
+package com.ECommerce.dto.response.product;
 
 public record BrandResponse (
         String name,

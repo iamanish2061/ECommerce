@@ -1,25 +1,19 @@
 package com.ECommerce.service.admin;
 
-import com.ECommerce.dto.request.product.AddProductImageRequest;
-import com.ECommerce.dto.request.product.AddProductRequest;
-
-import com.ECommerce.dto.request.product.AddTagRequest;
+import com.ECommerce.dto.request.product.*;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.product.*;
-import com.ECommerce.repository.BrandRepository;
-import com.ECommerce.repository.CategoryRepository;
-import com.ECommerce.repository.ProductRepository;
-import com.ECommerce.repository.TagRepository;
+import com.ECommerce.repository.*;
 import com.ECommerce.utils.HelperClass;
 import com.ECommerce.utils.ImageUploadHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,9 +27,10 @@ public class AdminProductService {
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
     private final ProductRepository productRepository;
+    private final ProductImageRepository productImageRepository;
 
     @Transactional
-    public boolean addTags(AddTagRequest request) throws ApplicationException {
+    public void addTags(AddTagRequest request) throws ApplicationException {
         List<String> incomingNames = request.names().stream()
                 .map(String::trim)
                 .toList();
@@ -59,23 +54,77 @@ public class AdminProductService {
         if (!newTagModels.isEmpty()) {
             tagRepository.saveAll(newTagModels);
         }
-        return true;
     }
 
     @Transactional
-    public boolean deleteTag(String name){
-        TagModel tag = tagRepository.findByName(name).orElseThrow(()->
-                new ApplicationException("Tag not found!", "INVALID_TAG", HttpStatus.BAD_REQUEST));
+    public void deleteTag(String name){
+        TagModel tag = tagRepository.findByName(name.trim()).orElseThrow(()->
+                new ApplicationException("Tag not found !", "INVALID_TAG", HttpStatus.BAD_REQUEST));
+
+        for(ProductModel product : tag.getProducts()){
+            product.getTags().remove(tag);
+            productRepository.save(product);
+        }
 
         tagRepository.delete(tag);
-        return true;
+    }
+
+    @Transactional
+    public void addTagToProduct(String name, Long productId) throws ApplicationException{
+        ProductModel productModel = productRepository.findById(productId)
+                .orElseThrow(()->
+                        new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        TagModel tagModel = tagRepository.findByName(name.trim())
+                .orElseThrow(()->
+                        new ApplicationException("Tag not found!", "TAG_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        if(productModel.getTags().add(tagModel)){
+            productRepository.save(productModel);
+        }
+    }
+
+    @Transactional
+    public void removeTagFromProduct(String name, Long productId) throws ApplicationException{
+        ProductModel productModel = productRepository.findById(productId)
+                .orElseThrow(()->
+                        new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        TagModel tagModel = tagRepository.findByName(name.trim())
+                .orElseThrow(()->
+                        new ApplicationException("Tag not found!", "TAG_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        if(productModel.getTags().remove(tagModel)){
+            productRepository.save(productModel);
+        }
     }
 
 
+    @Transactional
+    public void addBrand(AddBrandRequest addBrandRequest, MultipartFile logo) {
+        BrandModel brandModel = new BrandModel();
+        brandModel.setName(addBrandRequest.name().trim());
+        brandModel.setSlug(HelperClass.generateSlug(addBrandRequest.name().trim()));
+        String url = ImageUploadHelper.uploadImage(logo, addBrandRequest.name().trim());
+        brandModel.setLogoUrl(url);
 
+        brandRepository.save(brandModel);
+    }
 
+    @Transactional
+    public void addCategory(AddCategoryRequest addCategoryRequest, MultipartFile image) {
+        CategoryModel categoryParent = categoryRepository.findByName(addCategoryRequest.parentName().trim())
+                .orElse(null);
 
+        CategoryModel categoryModel = new CategoryModel();
+        categoryModel.setName(addCategoryRequest.name());
+        categoryModel.setSlug(HelperClass.generateSlug(addCategoryRequest.name().trim()));
+        categoryModel.setParent(categoryParent);
+        String url =ImageUploadHelper.uploadImage(image, addCategoryRequest.name().trim());
+        categoryModel.setImageUrl(url);
 
+        categoryRepository.save(categoryModel);
+    }
 
     @Transactional
     public SingleProductResponse addNewProduct(AddProductRequest request, List<MultipartFile> imageFiles) throws ApplicationException{
@@ -162,6 +211,19 @@ public class AdminProductService {
                 );
     }
 
+    @Transactional
+    public void addImage(Long productId, AddProductImageRequest addProductImageRequest, MultipartFile image) {
+
+        ProductModel productModel = productRepository.findById(productId)
+                .orElseThrow(()->
+                        new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        ProductImageModel productImageModel= ImageUploadHelper.uploadImage(image, addProductImageRequest);
+        productImageModel.setProduct(productModel);
+
+        productImageRepository.save(productImageModel);
+    }
+
     public AdminSingleProductResponse getAdminDetailOfProduct(Long id) {
         ProductModel product = productRepository.findById(id).orElseThrow(
                 ()-> new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
@@ -195,15 +257,25 @@ public class AdminProductService {
         return new AdminSingleProductResponse(s, product.getBasePrice());
     }
 
-
-    public boolean updatePrice(Long id, Double price) {
-        return false;
+    @Transactional
+    public void updatePrice(Long productId, BigDecimal price) {
+        ProductModel productModel = productRepository.findById(productId)
+                .orElseThrow(()->
+                        new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+        productModel.setSellingPrice(price);
+        productRepository.save(productModel);
     }
 
-    public boolean updateQuantity(Long id, int quantity) {
-        return false;
-    }
+    @Transactional
+    public void updateQuantity(Long productId, int quantity) {
+        ProductModel productModel = productRepository.findById(productId)
+                .orElseThrow(()->
+                        new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
+        Integer newStock = productModel.getStock()+quantity;
+        productModel.setStock(newStock);
+        productRepository.save(productModel);
+    }
 
 
 }

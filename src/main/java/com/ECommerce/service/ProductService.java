@@ -9,6 +9,7 @@ import com.ECommerce.repository.ProductRepository;
 import com.ECommerce.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -48,6 +49,9 @@ public class ProductService {
 //    if role is admin or user not logged in , display product as it is
 //    if user is logged in, kaam garna baki xa algorithm halera preference anushar
     public List<AllProductsResponse> getAllProducts() {
+
+        Authentication authentication = Authentication
+
         List<ProductModel> products = productRepository.findAll();
         return products.stream()
                 .map(p-> new AllProductsResponse(

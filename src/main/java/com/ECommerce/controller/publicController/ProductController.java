@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/public/products")
 public class ProductController {
-
     private final ProductService productService;
 
     @GetMapping("/tags")

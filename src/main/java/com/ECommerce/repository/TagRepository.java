@@ -12,7 +12,7 @@ import java.util.Set;
 public interface TagRepository extends JpaRepository<TagModel, Long> {
     Optional<TagModel> findBySlug(String slug);
 
-    Set<String> findSlugsBySlugsIn(List<String> incomingSlugs);
+    Set<String> findSlugsBySlugIn(List<String> incomingSlugs);
 
     Optional<TagModel> findByName(String name);
 }

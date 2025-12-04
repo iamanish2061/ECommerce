@@ -29,6 +29,7 @@ public class AdminProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
 
+    // adding tags
     @Transactional
     public void addTags(AddTagRequest request) throws ApplicationException {
         List<String> incomingNames = request.names().stream()

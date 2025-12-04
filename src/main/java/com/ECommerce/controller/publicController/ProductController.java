@@ -1,4 +1,4 @@
-package com.ECommerce.controller;
+package com.ECommerce.controller.publicController;
 
 import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.*;
@@ -17,7 +17,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/public/products")
 public class ProductController {
 
     private final ProductService productService;
@@ -40,6 +40,7 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
     }
 
+//    customization
     @GetMapping()
     public ResponseEntity<ApiResponse<List<AllProductsResponse>>> getAllProducts(){
         List<AllProductsResponse> products = productService.getAllProducts();
@@ -56,7 +57,11 @@ public class ProductController {
 
     //searched product
 
+
     //category
+    //brand
+//already return gareko xa but still research garam k hunxa ramro practice chai,
+//    frontend bata filter garney ki backend maa feri req pathaune
 
 
 }

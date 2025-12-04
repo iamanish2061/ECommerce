@@ -44,6 +44,9 @@ public class ProductService {
     }
 
     //pagination
+//    also according to logged in or not
+//    if role is admin or user not logged in , display product as it is
+//    if user is logged in, kaam garna baki xa algorithm halera preference anushar
     public List<AllProductsResponse> getAllProducts() {
         List<ProductModel> products = productRepository.findAll();
         return products.stream()

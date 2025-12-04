@@ -157,5 +157,4 @@ public class AdminProductController {
         return ResponseEntity.ok(ApiResponse.ok("Quantity updated successfully"));
     }
 
-
 }

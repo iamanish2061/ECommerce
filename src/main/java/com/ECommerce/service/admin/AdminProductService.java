@@ -39,7 +39,7 @@ public class AdminProductService {
                 .map(HelperClass::generateSlug)
                 .toList();
 
-        Set<String> existingSlugs = tagRepository.findSlugsBySlugsIn(incomingSlugs);
+        Set<String> existingSlugs = tagRepository.findSlugsBySlugIn(incomingSlugs);
 
         List<TagModel> newTagModels = new ArrayList<>();
 

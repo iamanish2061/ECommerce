@@ -4,7 +4,7 @@ import com.ECommerce.dto.request.product.*;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.product.*;
-import com.ECommerce.repository.*;
+import com.ECommerce.repository.product.*;
 import com.ECommerce.utils.HelperClass;
 import com.ECommerce.utils.ImageUploadHelper;
 import lombok.RequiredArgsConstructor;

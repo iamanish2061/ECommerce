@@ -3,13 +3,12 @@ package com.ECommerce.service;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.product.*;
-import com.ECommerce.repository.BrandRepository;
-import com.ECommerce.repository.CategoryRepository;
-import com.ECommerce.repository.ProductRepository;
-import com.ECommerce.repository.TagRepository;
+import com.ECommerce.repository.product.BrandRepository;
+import com.ECommerce.repository.product.CategoryRepository;
+import com.ECommerce.repository.product.ProductRepository;
+import com.ECommerce.repository.product.TagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

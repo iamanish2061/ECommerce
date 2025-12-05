@@ -24,7 +24,7 @@ public class UserActivity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "action_type", nullable = false)
-    private ActionType actionType;
+    private ActivityType activityType;
 
     @Column(nullable = false)
     private int score;
@@ -33,9 +33,5 @@ public class UserActivity {
     @CreationTimestamp
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public enum ActionType {
-        VIEW,       // score = 1
-        CART_ADD,   // score = 5
-        PURCHASE    // score = 20
-    }
+
 }

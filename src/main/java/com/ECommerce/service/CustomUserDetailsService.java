@@ -1,7 +1,7 @@
 package com.ECommerce.service;
 
-import com.ECommerce.model.UserPrincipal;
-import com.ECommerce.model.Users;
+import com.ECommerce.model.user.UserPrincipal;
+import com.ECommerce.model.user.Users;
 import com.ECommerce.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -1,6 +1,6 @@
 package com.ECommerce.dto.response.auth;
 
-import com.ECommerce.model.Role;
+import com.ECommerce.model.user.Role;
 
 public record AuthResponse(
         String accessToken,

@@ -50,7 +50,7 @@ public class ProductService {
 //    if user is logged in, kaam garna baki xa algorithm halera preference anushar
     public List<AllProductsResponse> getAllProducts() {
 
-        Authentication authentication = Authentication
+//        Authentication authentication = Authentication
 
         List<ProductModel> products = productRepository.findAll();
         return products.stream()

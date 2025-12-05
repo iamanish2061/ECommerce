@@ -1,7 +1,7 @@
 package com.ECommerce.dto.response.user;
 
-import com.ECommerce.model.Role;
-import com.ECommerce.model.UserStatus;
+import com.ECommerce.model.user.Role;
+import com.ECommerce.model.user.UserStatus;
 
 import java.time.LocalDateTime;
 

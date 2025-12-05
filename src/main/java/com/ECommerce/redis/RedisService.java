@@ -39,5 +39,11 @@ public class RedisService {
         redisTemplate.delete(email);
     }
 
+    public void incrementUserVector(Long userId, Long productId, int score) {
+        String key = "user_vector:" + userId;
+        redisTemplate.opsForHash().increment(key, productId.toString(), score);
+        redisTemplate.expire(key, 90, TimeUnit.DAYS);           // Optional: expire in 90 days if user inactive
+    }
+
 }
 

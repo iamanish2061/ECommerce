@@ -1,4 +1,4 @@
-package com.ECommerce.service;
+package com.ECommerce.service.products;
 
 import com.ECommerce.dto.response.cart.CartResponse;
 import com.ECommerce.dto.response.product.AllProductsResponse;

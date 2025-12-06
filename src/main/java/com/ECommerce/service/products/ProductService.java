@@ -1,4 +1,4 @@
-package com.ECommerce.service;
+package com.ECommerce.service.products;
 
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
@@ -43,14 +43,7 @@ public class ProductService {
                 .toList();
     }
 
-    //pagination
-//    also according to logged in or not
-//    if role is admin or user not logged in , display product as it is
-//    if user is logged in, kaam garna baki xa algorithm halera preference anushar
     public List<AllProductsResponse> getAllProducts() {
-
-//        Authentication authentication = Authentication
-
         List<ProductModel> products = productRepository.findAll();
         return products.stream()
                 .map(p-> new AllProductsResponse(
@@ -60,8 +53,8 @@ public class ProductService {
                         p.getSellingPrice(),
                         p.getStock(),
                         p.getImages().stream()
-                                .filter(img-> img.isThumbnail())
-                                .map(img-> img.getUrl())
+                                .filter(ProductImageModel::isThumbnail)
+                                .map(ProductImageModel::getUrl)
                                 .findFirst()
                                 .orElse(null)
                         ))
@@ -99,6 +92,26 @@ public class ProductService {
                         .toList()
 
         );
+    }
+
+    public List<AllProductsResponse> getAllProductsExcept(List<Long> personalizedProductIds) {
+        if (personalizedProductIds == null || personalizedProductIds.isEmpty()) {
+            return getAllProducts();
+        }
+        List<ProductModel> products = productRepository.findByIdNotIn(personalizedProductIds);
+        return products.stream()
+                .map(p -> new AllProductsResponse(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getShortDescription(),
+                        p.getSellingPrice(),
+                        p.getStock(),
+                        p.getImages().stream()
+                                .filter(ProductImageModel::isThumbnail)
+                                .map(ProductImageModel::getUrl)
+                                .findFirst().orElse(null)
+                ))
+            .toList();
     }
 
 

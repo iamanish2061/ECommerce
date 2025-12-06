@@ -1,4 +1,4 @@
-package com.ECommerce.service;
+package com.ECommerce.service.products;
 
 import com.ECommerce.model.ActivityType;
 import com.ECommerce.model.UserActivity;

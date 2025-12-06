@@ -2,13 +2,19 @@ package com.ECommerce.service.products;
 
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
+import com.ECommerce.model.ActivityType;
 import com.ECommerce.model.product.*;
+import com.ECommerce.model.user.UserPrincipal;
+import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.product.BrandRepository;
 import com.ECommerce.repository.product.CategoryRepository;
 import com.ECommerce.repository.product.ProductRepository;
 import com.ECommerce.repository.product.TagRepository;
+import com.ECommerce.service.recommendation.SimilarUserUpdater;
+import com.ECommerce.service.recommendation.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +27,8 @@ public class ProductService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+    private final RedisService redisService;
+    private final UserActivityService userActivityService;
 
     public List<TagResponse> getAllTags(){
         List<TagModel> tagModels = tagRepository.findAll();
@@ -61,9 +69,15 @@ public class ProductService {
                 .toList();
     }
 
-    public SingleProductResponse getDetailOfProduct(Long id) {
+    public SingleProductResponse getDetailOfProduct(UserPrincipal currentUser, Long id) {
         ProductModel product = productRepository.findById(id).orElseThrow(()->
                 new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
+
+        if(currentUser != null && !currentUser.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))){
+            Long userId = currentUser.getUser().getId();
+            userActivityService.recordActivity(userId, id, ActivityType.VIEW, 1);
+            redisService.updateViewedProduct(userId, id);
+        }
 
         return new SingleProductResponse(
                 product.getId(),

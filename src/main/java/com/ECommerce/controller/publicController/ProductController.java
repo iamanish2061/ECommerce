@@ -4,7 +4,7 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.model.user.UserPrincipal;
 import com.ECommerce.service.products.ProductService;
-import com.ECommerce.service.products.RecommendationService;
+import com.ECommerce.service.recommendation.RecommendationService;
 import com.ECommerce.validation.ValidId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -69,9 +69,10 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<SingleProductResponse>> getDetailOfProduct(
+            @AuthenticationPrincipal UserPrincipal currentUser,
             @ValidId @PathVariable Long id
     ){
-        SingleProductResponse product = productService.getDetailOfProduct(id);
+        SingleProductResponse product = productService.getDetailOfProduct(currentUser, id);
         return ResponseEntity.ok(ApiResponse.ok(product, "Fetched successfully"));
     }
 

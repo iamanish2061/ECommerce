@@ -10,6 +10,8 @@ import com.ECommerce.model.product.ProductModel;
 import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.cartAndOrders.CartRepository;
 import com.ECommerce.repository.product.ProductRepository;
+import com.ECommerce.service.recommendation.SimilarUserUpdater;
+import com.ECommerce.service.recommendation.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class CartService {
     private final ProductRepository productRepository;
     private final UserActivityService userActivityService;
     private final RedisService redisService;
+    private final SimilarUserUpdater similarUserUpdater;
 
     @Transactional
     public String addToCart(Long userId, Long productId, int quantity){
@@ -48,6 +51,7 @@ public class CartService {
         userActivityService.recordActivity(userId, productId, ActivityType.CART_ADD, 5);
 
         redisService.incrementUserVector(userId, productId, 5);
+        similarUserUpdater.updateSimilarUsersAsync(userId);
 
         return "Added to cart! Quantity: "+ cartItem.getQuantity();
     }
@@ -101,7 +105,10 @@ public class CartService {
 
         cartItem.setQuantity(newQuantity);
         cartRepository.save(cartItem);
+
         redisService.incrementUserVector(id, productId, 2);
+        similarUserUpdater.updateSimilarUsersAsync(id);
+
         return "Cart updated successfully! Quantity: "+ newQuantity;
     }
 
@@ -112,7 +119,9 @@ public class CartService {
 
         cartRepository.delete(cartItem);
 
-        redisService.incrementUserVector(userId, productId, -3);
+        redisService.incrementUserVector(userId, productId, -5);
+        similarUserUpdater.updateSimilarUsersAsync(userId);
+
         return "Item removed form cart!";
     }
 

@@ -1,4 +1,4 @@
-package com.ECommerce.service.products;
+package com.ECommerce.service.recommendation;
 
 import com.ECommerce.dto.response.product.AllProductsResponse;
 import com.ECommerce.model.product.ProductImageModel;
@@ -29,22 +29,12 @@ public class RecommendationService  {
 
         Set<Object> userProductIds = redisTemplate.opsForHash().keys(vectorKey);
 
-        Set<String> similarUserKeys = redisTemplate.keys("user_vector:*");
-        List<UserSimilarity> similarities = new ArrayList<>();
+        Set<String> similarUserIdStrings = redisTemplate.opsForZSet()
+                .reverseRange("user_similar:"+userId, 0,29);
 
-        for(String key : similarUserKeys){
-            if(key.equals(vectorKey)) continue;
-            Long otherUserId = Long.parseLong(key.split(":")[1]);
-            Double score = cosineSimilarity(userId, otherUserId);
-            if(score>0.3){
-                similarities.add(new UserSimilarity(otherUserId, score));
-            }
-        }
-
-        similarities.sort((a,b)->Double.compare(b.score, a.score));
-        List<Long> similarUserIds = similarities.stream()
-                .limit(15)
-                .map(u->u.userId)
+        List<Long> similarUserIds = similarUserIdStrings ==null ?
+                new ArrayList<>(): similarUserIdStrings.stream()
+                .map(Long::parseLong)
                 .toList();
 
         // Aggregate products from similar users (exclude already interacted)
@@ -79,30 +69,6 @@ public class RecommendationService  {
                                 .findFirst().orElse(null)
                 ))
                 .toList();
-    }
-
-    private Double cosineSimilarity(Long user1, Long user2) {
-        String key1 = "user_vector:" + user1;
-        String key2 = "user_vector:" + user2;
-
-        Map<Object, Object> vec1 = redisTemplate.opsForHash().entries(key1);
-        Map<Object, Object> vec2 = redisTemplate.opsForHash().entries(key2);
-
-        double dot = 0.0, norm1 = 0.0, norm2 = 0.0;
-        Set<String> allPids = new HashSet<>();
-        vec1.keySet().forEach(k-> allPids.add(k.toString()));
-        vec2.keySet().forEach(k-> allPids.add(k.toString()));
-
-        for (String pid: allPids) {
-            double score1 = Double.parseDouble(vec1.getOrDefault(pid, "0").toString());
-            double score2 = Double.parseDouble(vec2.getOrDefault(pid, "0").toString());
-
-            dot += score1 * score2;
-            norm1 += score1 * score1;
-            norm2 += score2 * score2;
-        }
-
-        return (norm1 == 0 || norm2 == 0) ? 0.0 : dot / (Math.sqrt(norm1) * Math.sqrt(norm2));
     }
 
     record UserSimilarity(Long userId, Double score){}

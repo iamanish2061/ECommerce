@@ -5,7 +5,7 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.AdminSingleProductResponse;
 import com.ECommerce.dto.response.product.SingleProductResponse;
 import com.ECommerce.exception.ApplicationException;
-import com.ECommerce.service.ProductService;
+import com.ECommerce.service.products.ProductService;
 import com.ECommerce.service.admin.AdminProductService;
 import com.ECommerce.validation.ValidId;
 import com.ECommerce.validation.ValidPrice;

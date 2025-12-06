@@ -3,7 +3,7 @@ package com.ECommerce.controller.user;
 import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.cart.CartResponse;
 import com.ECommerce.model.user.UserPrincipal;
-import com.ECommerce.service.CartService;
+import com.ECommerce.service.products.CartService;
 import com.ECommerce.validation.ValidId;
 import com.ECommerce.validation.ValidQuantity;
 import lombok.RequiredArgsConstructor;

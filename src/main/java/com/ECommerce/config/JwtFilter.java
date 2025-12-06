@@ -1,7 +1,7 @@
 package com.ECommerce.config;
 
 import com.ECommerce.exception.ApplicationException;
-import com.ECommerce.service.CustomUserDetailsService;
+import com.ECommerce.service.user.CustomUserDetailsService;
 import com.ECommerce.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

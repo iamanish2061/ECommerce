@@ -56,6 +56,7 @@ public class CartService {
         return "Added to cart! Quantity: "+ cartItem.getQuantity();
     }
 
+    @Transactional
     public int getCartCount(Long userId){
         List<CartItem> cartItems = cartRepository.findByUserId(userId);
 
@@ -64,6 +65,7 @@ public class CartService {
                 .sum();
     }
 
+    @Transactional
     public List<CartResponse> getCartItems(Long userId) {
         List<CartItem> cartItems = cartRepository.findByUserId(userId);
         return cartItems.stream()
@@ -85,6 +87,7 @@ public class CartService {
                 }).toList();
     }
 
+    @Transactional
     public String updateCart(Long id, Long productId, int newQuantity) {
         if(newQuantity<0)
             throw new ApplicationException("Invalid quantity!", "INVALID_QUANTITY", HttpStatus.BAD_REQUEST);
@@ -112,6 +115,7 @@ public class CartService {
         return "Cart updated successfully! Quantity: "+ newQuantity;
     }
 
+    @Transactional
     public String deleteFromCart(Long userId, Long productId) {
         CartItem cartItem = cartRepository
                 .findByUserIdAndProductId(userId, productId)

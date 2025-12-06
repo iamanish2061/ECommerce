@@ -1,4 +1,4 @@
-package com.ECommerce.service;
+package com.ECommerce.service.user;
 
 import com.ECommerce.model.user.UserPrincipal;
 import com.ECommerce.model.user.Users;

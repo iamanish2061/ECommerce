@@ -84,7 +84,8 @@ public class CartService {
                                     .findFirst().orElse(null)
                     );
                     return new CartResponse(productsResponse, item.getQuantity());
-                }).toList();
+                })
+                .toList();
     }
 
     @Transactional

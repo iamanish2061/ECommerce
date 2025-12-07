@@ -1,6 +1,7 @@
 package com.ECommerce.model.cartandorders;
 
 import com.ECommerce.model.product.ProductModel;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -28,6 +29,7 @@ public class OrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @JsonIgnoreProperties("orderItems")
     private OrderModel order;
 
     @ManyToOne(fetch = FetchType.LAZY)

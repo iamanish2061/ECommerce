@@ -41,7 +41,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    private BCryptPasswordEncoder encoder= new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder= new BCryptPasswordEncoder(12);
 
     public boolean doesUserNameExist(String username) {
         return userRepo.existsByUsername(username);

@@ -69,11 +69,4 @@ public class AdminUserService {
         return true;
     }
 
-
-
-    //bakiiiiiiiiiiiiii
-
-    public List<OrderModel> getAllOrdersOf(Long id){
-        return null;
-    }
 }

@@ -4,7 +4,6 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.user.GetAllUserResponse;
 import com.ECommerce.dto.response.user.SingleUserDetailResponse;
 import com.ECommerce.exception.ApplicationException;
-import com.ECommerce.model.cartandorders.OrderModel;
 import com.ECommerce.model.user.Role;
 import com.ECommerce.model.user.UserStatus;
 import com.ECommerce.service.admin.AdminUserService;
@@ -65,16 +64,6 @@ public class AdminUserController {
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Failed to update status!", "FAILED_TO_UPDATE_STATUS"));
-    }
-
-
-    //to be completed
-    //bakiiiiiiiiii
-    @GetMapping("/orders/{id}")
-    public ResponseEntity<ApiResponse<List<OrderModel>>> getAllOrders(
-            @ValidId @PathVariable Long id
-    ){
-        return ResponseEntity.ok(ApiResponse.ok(userService.getAllOrdersOf(id), "Fetched."));
     }
 
 }

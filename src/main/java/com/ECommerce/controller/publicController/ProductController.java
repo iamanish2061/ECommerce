@@ -8,6 +8,8 @@ import com.ECommerce.service.products.ProductService;
 import com.ECommerce.service.recommendation.RecommendationService;
 import com.ECommerce.validation.ValidId;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
@@ -44,14 +46,16 @@ public class ProductController {
     //NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
     @GetMapping("/brand-products/{brandSlug}")
     public ResponseEntity<ApiResponse<BrandWithProductResponse>> getProductsOfBrand(
+        @NotBlank(message = "Brand is required")
         @PathVariable String brandSlug
     ){
-        List<BrandWithProductResponse> response = productService.getProductsOfBrand(brandSlug);
+        BrandWithProductResponse response = productService.getProductsOfBrand(brandSlug);
         return ResponseEntity.ok(ApiResponse.ok(response, "Products of: "+ brandSlug));
     }
 
-    List<BrandWithProductResponse> response =
 
+    //end point for getting category name that can be used in dropdowns (admin) useful while adding products
+// and for displaying categories we have in brand section (customer sees it)
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(){
         List<CategoryResponse> categories = productService.getAllCategories();

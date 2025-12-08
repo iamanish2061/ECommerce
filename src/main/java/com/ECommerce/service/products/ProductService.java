@@ -20,6 +20,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -48,17 +49,30 @@ public class ProductService {
                 .toList();
     }
 
+    public BrandWithProductResponse getProductsOfBrand(String brandSlug) {
+        List<Object[]> rows= productRepository.findAllByBrandSlug(brandSlug);
 
-    @Transactional
-    public List<BrandWithProductResponse> getProductsOfBrand(String brandSlug) {
-        BrandModel brand = brandRepository.findBySlug(brandSlug).orElseThrow(
-                ()->new ApplicationException("Brand not found!", "BRAND_NOT_FOUND", HttpStatus.BAD_REQUEST)
+        if(rows.isEmpty()){
+            throw new ApplicationException("Brand not found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }
+
+        Object[] firstRow = rows.get(0);
+
+        BrandResponse brandResponse = new BrandResponse(
+                (String) firstRow[0],
+                (String) firstRow[1],
+                (String) firstRow[2]
         );
-        List<ProductModel> products= productRepository.findAllByBrandSlug(brand.getSlug());
 
-        BrandResponse brandResponse = new BrandResponse(brand.getName(), brand.getSlug(), brand.getLogoUrl());
-        List<AllProductsResponse> productsResponse = products.stream()
-                .map(p-> .......)
+        List<AllProductsResponse> productsResponse = rows.stream()
+                .map(r-> new AllProductsResponse(
+                        (Long) r[3],
+                        (String) r[4],
+                        (String) r[5],
+                        (BigDecimal) r[6],
+                        (Integer) r[7],
+                        (String) r[8]
+                )).toList();
 
         return new BrandWithProductResponse(brandResponse, productsResponse);
     }

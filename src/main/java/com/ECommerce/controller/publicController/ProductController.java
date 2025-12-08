@@ -1,17 +1,13 @@
 package com.ECommerce.controller.publicController;
 
-import com.ECommerce.dto.request.product.BrandRequest;
 import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.model.user.UserPrincipal;
 import com.ECommerce.service.products.ProductService;
 import com.ECommerce.service.recommendation.RecommendationService;
 import com.ECommerce.validation.ValidId;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

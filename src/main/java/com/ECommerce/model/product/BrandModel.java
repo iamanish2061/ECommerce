@@ -31,7 +31,7 @@ public class BrandModel {
     @Column(name = "logo_url")
     private String logoUrl;
 
-    @OneToMany(mappedBy = "brand")
+    @OneToMany(mappedBy = "brand", fetch = FetchType.LAZY)
     @JsonIgnoreProperties("brand")
     private Set<ProductModel> products = new HashSet<>();
 }

@@ -102,7 +102,7 @@ public class AdminProductService {
 
 
     @Transactional
-    public void addBrand(AddBrandRequest addBrandRequest, MultipartFile logo) {
+    public void addBrand(BrandRequest addBrandRequest, MultipartFile logo) {
         BrandModel brandModel = new BrandModel();
         brandModel.setName(addBrandRequest.name().trim());
         brandModel.setSlug(HelperClass.generateSlug(addBrandRequest.name().trim()));

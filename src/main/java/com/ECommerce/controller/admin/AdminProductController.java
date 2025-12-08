@@ -89,7 +89,7 @@ public class AdminProductController {
     //for adding brand
     @PostMapping(value = "/brand", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> addBrand(
-        @Valid @RequestPart("addBrandRequest") AddBrandRequest addBrandRequest,
+        @Valid @RequestPart("addBrandRequest") BrandRequest addBrandRequest,
         @RequestPart("logo") MultipartFile logo
     ){
         adminProductService.addBrand(addBrandRequest, logo);

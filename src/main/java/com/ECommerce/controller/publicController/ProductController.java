@@ -1,12 +1,15 @@
 package com.ECommerce.controller.publicController;
 
+import com.ECommerce.dto.request.product.BrandRequest;
 import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.model.user.UserPrincipal;
 import com.ECommerce.service.products.ProductService;
 import com.ECommerce.service.recommendation.RecommendationService;
 import com.ECommerce.validation.ValidId;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,23 +31,43 @@ public class ProductController {
     private final ProductService productService;
     private final RecommendationService recommendationService;
 
-    @GetMapping("/tags")
-    public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
-        List<TagResponse> tags = productService.getAllTags();
-        return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
-    }
-
-    @GetMapping("/brands")
+//end point for getting brand name that can be used in dropdowns (admin) useful while adding products
+// and for displaying brands we have in brand section (customer sees it)
+    @GetMapping("/brand-name")
     public ResponseEntity<ApiResponse<List<BrandResponse>>> getAllBrands(){
         List<BrandResponse> brands = productService.getAllBrands();
-        return ResponseEntity.ok(ApiResponse.ok(brands, "Brands fetched"));
+        return ResponseEntity.ok(ApiResponse.ok(brands, "Brand name fetched"));
     }
+
+//    after customer clicks particular brand from the list this end point return brand info
+    // and products of that brand that we have
+    //NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
+    @GetMapping("/brand-products/{brandSlug}")
+    public ResponseEntity<ApiResponse<BrandWithProductResponse>> getProductsOfBrand(
+        @PathVariable String brandSlug
+    ){
+        List<BrandWithProductResponse> response = productService.getProductsOfBrand(brandSlug);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Products of: "+ brandSlug));
+    }
+
+    List<BrandWithProductResponse> response =
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(){
         List<CategoryResponse> categories = productService.getAllCategories();
         return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
     }
+
+
+
+
+
+    @GetMapping("/tags")
+    public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
+        List<TagResponse> tags = productService.getAllTags();
+        return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
+    }
+
 
     @GetMapping()
     public ResponseEntity<ApiResponse<Map<String,List<AllProductsResponse>>>> getAllProducts(

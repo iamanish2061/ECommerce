@@ -1,5 +1,6 @@
 package com.ECommerce.service.products;
 
+import com.ECommerce.dto.request.product.BrandRequest;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.ActivityType;
@@ -12,10 +13,12 @@ import com.ECommerce.repository.product.ProductRepository;
 import com.ECommerce.repository.product.TagRepository;
 import com.ECommerce.service.recommendation.SimilarUserUpdater;
 import com.ECommerce.service.recommendation.UserActivityService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,11 +40,27 @@ public class ProductService {
                 .toList();
     }
 
+    //for showing dropdowns
     public List<BrandResponse> getAllBrands() {
         List<BrandModel> brands = brandRepository.findAll();
         return brands.stream()
                 .map(brand-> new BrandResponse(brand.getName(), brand.getSlug(), brand.getLogoUrl()))
                 .toList();
+    }
+
+
+    @Transactional
+    public List<BrandWithProductResponse> getProductsOfBrand(String brandSlug) {
+        BrandModel brand = brandRepository.findBySlug(brandSlug).orElseThrow(
+                ()->new ApplicationException("Brand not found!", "BRAND_NOT_FOUND", HttpStatus.BAD_REQUEST)
+        );
+        List<ProductModel> products= productRepository.findAllByBrandSlug(brand.getSlug());
+
+        BrandResponse brandResponse = new BrandResponse(brand.getName(), brand.getSlug(), brand.getLogoUrl());
+        List<AllProductsResponse> productsResponse = products.stream()
+                .map(p-> .......)
+
+        return new BrandWithProductResponse(brandResponse, productsResponse);
     }
 
     public List<CategoryResponse> getAllCategories() {
@@ -127,7 +146,6 @@ public class ProductService {
                 ))
             .toList();
     }
-
 
 
 }

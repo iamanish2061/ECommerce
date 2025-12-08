@@ -58,7 +58,14 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
     }
 
-
+    @GetMapping("/categories/{categorySlug}")
+    public ResponseEntity<ApiResponse<?>> getProductsOfCategory(
+            @NotBlank(message = "Category is required")
+            @PathVariable String categorySlug
+    ){
+        List<CategoryResponse> categories = productService.getProductsOfCategory(categorySlug);
+        return ResponseEntity.ok(ApiResponse.ok(categories, "Products fetched of: "+categorySlug));
+    }
 
 
 

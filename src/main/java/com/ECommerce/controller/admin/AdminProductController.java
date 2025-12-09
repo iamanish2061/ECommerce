@@ -32,8 +32,8 @@ public class AdminProductController {
     private final AdminProductService adminProductService;
     private final ProductService productService;
 
-    //for adding tags
-    //comma separated value ko list banayera pathauney
+//    for adding tags
+//    comma separated value ko list banayera pathauney
     @PostMapping("/tags")
     public ResponseEntity<ApiResponse<String>> addTags(
             @Valid @RequestBody AddTagRequest tagRequests
@@ -43,9 +43,9 @@ public class AdminProductController {
                 ApiResponse.ok("Tags added successfully"));
     }
 
-    //for deleting tag
+//    for deleting tag
 //    dropdown bata select garera pathaune
-    // value chai slug pathauney
+//    value chai slug pathauney
     @PutMapping("/tags")
     public ResponseEntity<ApiResponse<String>> deleteTag(
         @Pattern(regexp = "^[a-zA-Z0-9\\s&()\\-.,:]{2,100}$", message ="Invalid Tag!")
@@ -87,16 +87,6 @@ public class AdminProductController {
         );
     }
 
-
-
-
-
-
-
-
-
-
-
     //for adding brand
     @PostMapping(value = "/brand", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> addBrand(
@@ -106,6 +96,13 @@ public class AdminProductController {
         adminProductService.addBrand(addBrandRequest, logo);
         return ResponseEntity.ok(ApiResponse.ok("Brand added successfully"));
     }
+
+
+
+
+
+
+
 
     //for adding category
     @PostMapping(value = "/category", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

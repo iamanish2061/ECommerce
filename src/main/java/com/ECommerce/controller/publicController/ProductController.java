@@ -29,20 +29,27 @@ public class ProductController {
     private final ProductService productService;
     private final RecommendationService recommendationService;
 
+//   getting tags for putting in user interface so user clicks to the tag and get related product result (user side)
+//   also for dropdowns and options while adding products (admin side)
     @GetMapping("/tags")
     public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
         List<TagResponse> tags = productService.getAllTags();
         return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
     }
 
+//   while user click the tag, the products related to that tag is returned
+//   NOTE send tagSlug not tag name
+    @GetMapping("/tags/{tagSlug}")
+    public ResponseEntity<ApiResponse<TagWithProductResponse>> getProductsOfTag(
+            @NotBlank(message = "Tag is required")
+            @PathVariable String tagSlug
+    ){
+        TagWithProductResponse response = productService.getProductsOfTag(tagSlug);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Products of tag: "+tagSlug));
+    }
 
-
-
-
-
-
-//end point for getting brand name that can be used in dropdowns (admin) useful while adding products
-// and for displaying brands we have in brand section (customer sees it)
+//  end point for getting brand name that can be used in dropdowns (admin) useful while adding products
+//  and for displaying brands we have in brand section (customer sees it)
     @GetMapping("/brand-name")
     public ResponseEntity<ApiResponse<List<BrandResponse>>> getAllBrands(){
         List<BrandResponse> brands = productService.getAllBrands();
@@ -50,8 +57,8 @@ public class ProductController {
     }
 
 //    after customer clicks particular brand from the list this end point return brand info
-    // and products of that brand that we have
-    //NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
+//    and products of that brand that we have
+//    NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
     @GetMapping("/brand-products/{brandSlug}")
     public ResponseEntity<ApiResponse<BrandWithProductResponse>> getProductsOfBrand(
         @NotBlank(message = "Brand is required")
@@ -62,8 +69,14 @@ public class ProductController {
     }
 
 
-    //end point for getting category name that can be used in dropdowns (admin) useful while adding products
-// and for displaying categories we have in brand section (customer sees it)
+
+
+
+
+
+
+//  end point for getting category name that can be used in dropdowns (admin) useful while adding products
+//  and for displaying categories we have in brand section (customer sees it)
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories(){
         List<CategoryResponse> categories = productService.getAllCategories();

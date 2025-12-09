@@ -99,13 +99,6 @@ public class AdminProductService {
         }
     }
 
-
-
-
-
-
-
-
     @Transactional
     public void addBrand(BrandRequest addBrandRequest, MultipartFile logo) {
         BrandModel brandModel = new BrandModel();
@@ -116,6 +109,13 @@ public class AdminProductService {
 
         brandRepository.save(brandModel);
     }
+
+
+
+
+
+
+
 
     @Transactional
     public void addCategory(AddCategoryRequest addCategoryRequest, MultipartFile image) {

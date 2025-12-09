@@ -43,7 +43,32 @@ public class ProductService {
                 .toList();
     }
 
-    //for showing dropdowns
+    public TagWithProductResponse getProductsOfTag(String tagSlug) {
+        List<Object[]> products = productRepository.findAllByTagSlug(tagSlug);
+
+        if(products.isEmpty()){
+            throw new ApplicationException("Product not found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }
+
+        Object[] firstRow = products.get(0);
+        TagResponse tagResponse = new TagResponse(
+                (String) firstRow[0],
+                (String) firstRow[1]
+        );
+
+        List<AllProductsResponse> allProductsResponses = products.stream()
+                .map(p-> new AllProductsResponse(
+                        (Long) p[2],
+                        (String) p[3],
+                        (String) p[4],
+                        (BigDecimal) p[5],
+                        (Integer) p[6],
+                        (String) p[7]
+                )).toList();
+
+        return new TagWithProductResponse(tagResponse, allProductsResponses);
+    }
+
     public List<BrandResponse> getAllBrands() {
         List<BrandModel> brands = brandRepository.findAll();
         return brands.stream()
@@ -78,6 +103,15 @@ public class ProductService {
 
         return new BrandWithProductResponse(brandResponse, productsResponse);
     }
+
+
+
+
+
+
+
+
+
 
     public List<CategoryResponse> getAllCategories() {
         List<CategoryModel> categories = categoryRepository.findAll();
@@ -188,7 +222,6 @@ public class ProductService {
                 ))
             .toList();
     }
-
 
 
 }

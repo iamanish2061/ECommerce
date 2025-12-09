@@ -1,27 +1,24 @@
 package com.ECommerce.service.products;
 
-import com.ECommerce.dto.request.product.BrandRequest;
 import com.ECommerce.dto.response.product.*;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.ActivityType;
-import com.ECommerce.model.product.*;
+import com.ECommerce.model.product.BrandModel;
+import com.ECommerce.model.product.CategoryModel;
+import com.ECommerce.model.product.ProductModel;
+import com.ECommerce.model.product.TagModel;
 import com.ECommerce.model.user.UserPrincipal;
 import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.product.BrandRepository;
 import com.ECommerce.repository.product.CategoryRepository;
 import com.ECommerce.repository.product.ProductRepository;
 import com.ECommerce.repository.product.TagRepository;
-import com.ECommerce.service.recommendation.SimilarUserUpdater;
 import com.ECommerce.service.recommendation.UserActivityService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.DocFlavor;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -137,38 +134,25 @@ public class ProductService {
         return new CategoryWithProductResponse(categoryResponse, productResponse);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
     public List<AllProductsResponse> getAllProducts() {
-        List<ProductModel> products = productRepository.findAll();
-        return products.stream()
-                .map(p-> new AllProductsResponse(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getShortDescription(),
-                        p.getSellingPrice(),
-                        p.getStock(),
-                        p.getImages().stream()
-                                .filter(ProductImageModel::isThumbnail)
-                                .map(ProductImageModel::getUrl)
-                                .findFirst()
-                                .orElse(null)
-                        ))
-                .toList();
+        List<AllProductsResponse> products = productRepository.findAllWithImage();
+        if(products.isEmpty())
+            throw new ApplicationException("No products found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+        return products;
+    }
+
+    public List<AllProductsResponse> getAllProductsExcept(List<Long> personalizedProductIds) {
+        if (personalizedProductIds == null || personalizedProductIds.isEmpty()) {
+            return getAllProducts();
+        }
+        List<AllProductsResponse> products = productRepository.findAllWithImageNotIn(personalizedProductIds);
+        if(products.isEmpty())
+            throw new ApplicationException("No products found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+        return products;
     }
 
     public SingleProductResponse getDetailOfProduct(UserPrincipal currentUser, Long id) {
-        ProductModel product = productRepository.findById(id).orElseThrow(()->
+        ProductModel product = productRepository.findByIdWithAllDetails(id).orElseThrow(()->
                 new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
         if(currentUser != null && !currentUser.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))){
@@ -206,25 +190,6 @@ public class ProductService {
         );
     }
 
-    public List<AllProductsResponse> getAllProductsExcept(List<Long> personalizedProductIds) {
-        if (personalizedProductIds == null || personalizedProductIds.isEmpty()) {
-            return getAllProducts();
-        }
-        List<ProductModel> products = productRepository.findByIdNotIn(personalizedProductIds);
-        return products.stream()
-                .map(p -> new AllProductsResponse(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getShortDescription(),
-                        p.getSellingPrice(),
-                        p.getStock(),
-                        p.getImages().stream()
-                                .filter(ProductImageModel::isThumbnail)
-                                .map(ProductImageModel::getUrl)
-                                .findFirst().orElse(null)
-                ))
-            .toList();
-    }
 
 
 }

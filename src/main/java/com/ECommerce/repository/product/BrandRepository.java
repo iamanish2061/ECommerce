@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface BrandRepository extends JpaRepository<BrandModel, Long> {
 
-    Optional<BrandModel> findByName(String name);
     Optional<BrandModel> findBySlug(String slug);
 
 }

@@ -108,11 +108,7 @@ public class AdminProductController {
         return ResponseEntity.ok(ApiResponse.ok("Category added successfully"));
     }
 
-
-
-
-
-
+    // send brand and category slug
     //for adding product
     @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<SingleProductResponse>> addNewProduct(
@@ -163,5 +159,6 @@ public class AdminProductController {
         adminProductService.updateQuantity(id, quantity);
         return ResponseEntity.ok(ApiResponse.ok("Quantity updated successfully"));
     }
+
 
 }

@@ -124,17 +124,13 @@ public class AdminProductService {
         categoryRepository.save(categoryModel);
     }
 
-
-
-
-
     @Transactional
     public SingleProductResponse addNewProduct(AddProductRequest request, List<MultipartFile> imageFiles) throws ApplicationException{
 
-        BrandModel brand = brandRepository.findByName(request.brandName().trim())
+        BrandModel brand = brandRepository.findBySlug(request.brandSlug().trim())
                 .orElseThrow(()->new ApplicationException("Brand not found", "BRAND_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
-        CategoryModel category = categoryRepository.findByName(request.categoryName().trim())
+        CategoryModel category = categoryRepository.findBySlug(request.categorySlug().trim())
                 .orElseThrow(()->new ApplicationException("Category not found!", "CATEGORY_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
         // Handling Tags
@@ -180,8 +176,10 @@ public class AdminProductService {
 
 
         // 6. Save everything (cascade handles images + tags)
-        ProductModel savedProduct = productRepository.save(product);
+        ProductModel p = productRepository.save(product);
 
+        ProductModel savedProduct = productRepository.findByIdWithAllDetails(p.getId())
+                .orElseThrow();
 
         return new SingleProductResponse(
                 savedProduct.getId(),
@@ -213,8 +211,6 @@ public class AdminProductService {
                 );
     }
 
-
-
     @Transactional
     public void addImage(Long productId, AddProductImageRequest addProductImageRequest, MultipartFile image) {
 
@@ -229,7 +225,7 @@ public class AdminProductService {
     }
 
     public AdminSingleProductResponse getAdminDetailOfProduct(Long id) {
-        ProductModel product = productRepository.findById(id).orElseThrow(
+        ProductModel product = productRepository.findByIdWithAllDetails(id).orElseThrow(
                 ()-> new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
                 SingleProductResponse s = new SingleProductResponse(
@@ -269,8 +265,6 @@ public class AdminProductService {
         productModel.setSellingPrice(price);
         productRepository.save(productModel);
     }
-
-
 
     @Transactional
     public void updateQuantity(Long productId, int quantity) {

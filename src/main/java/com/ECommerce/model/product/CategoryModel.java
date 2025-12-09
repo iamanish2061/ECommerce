@@ -30,6 +30,7 @@ public class CategoryModel {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "parent_id")
+    @JsonIgnoreProperties("parent")
     private CategoryModel parent;
 
     @Column(name = "image_url")

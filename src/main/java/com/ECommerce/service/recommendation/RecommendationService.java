@@ -1,11 +1,13 @@
 package com.ECommerce.service.recommendation;
 
 import com.ECommerce.dto.response.product.AllProductsResponse;
+import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.product.ProductImageModel;
 import com.ECommerce.model.product.ProductModel;
 import com.ECommerce.repository.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -19,7 +21,7 @@ public class RecommendationService  {
     private static final int RECOMMENDATION_COUNT =15;
 
     public List<AllProductsResponse> getPersonalizedRecommendation(Long userId){
-        List<ProductModel> recommendationProducts;
+        List<AllProductsResponse> recommendationProducts;
         String vectorKey = "user_vector:" + userId;
 
         Long size = redisTemplate.opsForHash().size(vectorKey);
@@ -54,23 +56,12 @@ public class RecommendationService  {
                 .map(e -> Long.parseLong(e.getKey()))
                 .toList();
 
-        recommendationProducts = productRepository.findAllById(recommendedIds);
-        return recommendationProducts.stream()
-                .sorted(Comparator.comparingLong(p->recommendedIds.indexOf(p.getId())))
-                .map(r-> new AllProductsResponse(
-                        r.getId(),
-                        r.getTitle(),
-                        r.getShortDescription(),
-                        r.getSellingPrice(),
-                        r.getStock(),
-                        r.getImages().stream()
-                                .filter(ProductImageModel::isThumbnail)
-                                .map(ProductImageModel::getUrl)
-                                .findFirst().orElse(null)
-                ))
-                .toList();
+        recommendationProducts = productRepository.findAllByIdWithImage(recommendedIds);
+        if(recommendationProducts.isEmpty()){
+            throw new ApplicationException("No products found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+        }else {
+            return recommendationProducts;
+        }
     }
-
-    record UserSimilarity(Long userId, Double score){}
 
 }

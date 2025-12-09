@@ -87,21 +87,6 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(categories, "Products fetched of: "+categorySlug));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @GetMapping()
     public ResponseEntity<ApiResponse<Map<String,List<AllProductsResponse>>>> getAllProducts(
         @AuthenticationPrincipal UserPrincipal currentUser

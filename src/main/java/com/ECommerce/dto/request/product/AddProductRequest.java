@@ -20,10 +20,10 @@ public record AddProductRequest(
         String description,
 
         @NotBlank(message = "Brand Name is required")
-        String brandName,
+        String brandSlug,
 
         @NotBlank(message = "Category Name is required")
-        String categoryName,
+        String categorySlug,
 
         @NotNull
         @DecimalMin("0.00")

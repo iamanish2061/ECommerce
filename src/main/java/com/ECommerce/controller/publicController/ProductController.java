@@ -29,6 +29,18 @@ public class ProductController {
     private final ProductService productService;
     private final RecommendationService recommendationService;
 
+    @GetMapping("/tags")
+    public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
+        List<TagResponse> tags = productService.getAllTags();
+        return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
+    }
+
+
+
+
+
+
+
 //end point for getting brand name that can be used in dropdowns (admin) useful while adding products
 // and for displaying brands we have in brand section (customer sees it)
     @GetMapping("/brand-name")
@@ -58,22 +70,19 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
     }
 
-    @GetMapping("/categories/{categorySlug}")
-    public ResponseEntity<ApiResponse<?>> getProductsOfCategory(
+//displaying products according to the selected category
+    //NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
+    @GetMapping("/category-products/{categorySlug}")
+    public ResponseEntity<ApiResponse<CategoryWithProductResponse>> getProductsOfCategory(
             @NotBlank(message = "Category is required")
             @PathVariable String categorySlug
     ){
-        List<CategoryResponse> categories = productService.getProductsOfCategory(categorySlug);
+        CategoryWithProductResponse categories = productService.getProductsOfCategory(categorySlug);
         return ResponseEntity.ok(ApiResponse.ok(categories, "Products fetched of: "+categorySlug));
     }
 
 
 
-    @GetMapping("/tags")
-    public ResponseEntity<ApiResponse<List<TagResponse>>> getAllTags(){
-        List<TagResponse> tags = productService.getAllTags();
-        return ResponseEntity.ok(ApiResponse.ok(tags, "Tags fetched"));
-    }
 
 
     @GetMapping()

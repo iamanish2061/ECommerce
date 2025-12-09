@@ -14,12 +14,14 @@ import com.ECommerce.repository.product.TagRepository;
 import com.ECommerce.service.recommendation.SimilarUserUpdater;
 import com.ECommerce.service.recommendation.UserActivityService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.DocFlavor;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -82,6 +84,32 @@ public class ProductService {
         return categories.stream()
                 .map(c-> new CategoryResponse(c.getName(), c.getSlug(), c.getImageUrl()))
                 .toList();
+    }
+
+    public CategoryWithProductResponse getProductsOfCategory(String categorySlug) {
+        List<Object[]> rows = productRepository.findAllByCategorySlug(categorySlug);
+
+        if(rows.isEmpty())
+            throw new ApplicationException("Brand not found!", "NOT_FOUND", HttpStatus.BAD_REQUEST);
+
+        Object[] firstRow = rows.get(0);
+        CategoryResponse categoryResponse = new CategoryResponse(
+                (String) firstRow[0],
+                (String) firstRow[1],
+                (String) firstRow[2]
+        );
+
+        List<AllProductsResponse> productResponse = rows.stream()
+                .map(p-> new AllProductsResponse(
+                        (Long) p[3],
+                        (String) p[4],
+                        (String) p[5],
+                        (BigDecimal) p[6],
+                        (Integer) p[7],
+                        (String) p[8]
+                )).toList();
+
+        return new CategoryWithProductResponse(categoryResponse, productResponse);
     }
 
     public List<AllProductsResponse> getAllProducts() {
@@ -160,6 +188,7 @@ public class ProductService {
                 ))
             .toList();
     }
+
 
 
 }

@@ -83,7 +83,7 @@ public class ProductModel {
     @JsonIgnoreProperties("product")
     private List<ProductImageModel> images = new ArrayList<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "product_tags",
             joinColumns = @JoinColumn(name = "product_id"),

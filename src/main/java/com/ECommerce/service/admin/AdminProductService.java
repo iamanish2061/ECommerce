@@ -58,21 +58,16 @@ public class AdminProductService {
     }
 
     @Transactional
-    public void deleteTag(String name){
-        TagModel tag = tagRepository.findByName(name.trim()).orElseThrow(()->
+    public void deleteTag(String slug){
+        TagModel tag = tagRepository.findBySlugWithProduct(slug.trim()).orElseThrow(()->
                 new ApplicationException("Tag not found !", "INVALID_TAG", HttpStatus.BAD_REQUEST));
-
-        for(ProductModel product : tag.getProducts()){
-            product.getTags().remove(tag);
-            productRepository.save(product);
-        }
-
+        tag.getProducts().clear();
         tagRepository.delete(tag);
     }
 
     @Transactional
     public void addTagToProduct(String name, Long productId) throws ApplicationException{
-        ProductModel productModel = productRepository.findById(productId)
+        ProductModel productModel = productRepository.findByIdWithTags(productId)
                 .orElseThrow(()->
                         new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
@@ -82,12 +77,14 @@ public class AdminProductService {
 
         if(productModel.getTags().add(tagModel)){
             productRepository.save(productModel);
+        }else{
+            throw new ApplicationException("This tag is already added to the product id: "+productId, "INVALID", HttpStatus.BAD_REQUEST);
         }
     }
 
     @Transactional
     public void removeTagFromProduct(String name, Long productId) throws ApplicationException{
-        ProductModel productModel = productRepository.findById(productId)
+        ProductModel productModel = productRepository.findByIdWithTags(productId)
                 .orElseThrow(()->
                         new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
 
@@ -97,8 +94,16 @@ public class AdminProductService {
 
         if(productModel.getTags().remove(tagModel)){
             productRepository.save(productModel);
+        }else{
+            throw new ApplicationException("This tag is not linked to product id: "+productId, "INVALID", HttpStatus.BAD_REQUEST);
         }
     }
+
+
+
+
+
+
 
 
     @Transactional

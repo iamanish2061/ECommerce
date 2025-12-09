@@ -5,8 +5,8 @@ import com.ECommerce.dto.response.ApiResponse;
 import com.ECommerce.dto.response.product.AdminSingleProductResponse;
 import com.ECommerce.dto.response.product.SingleProductResponse;
 import com.ECommerce.exception.ApplicationException;
-import com.ECommerce.service.products.ProductService;
 import com.ECommerce.service.admin.AdminProductService;
+import com.ECommerce.service.products.ProductService;
 import com.ECommerce.validation.ValidId;
 import com.ECommerce.validation.ValidPrice;
 import com.ECommerce.validation.ValidQuantity;
@@ -45,12 +45,13 @@ public class AdminProductController {
 
     //for deleting tag
 //    dropdown bata select garera pathaune
+    // value chai slug pathauney
     @PutMapping("/tags")
     public ResponseEntity<ApiResponse<String>> deleteTag(
         @Pattern(regexp = "^[a-zA-Z0-9\\s&()\\-.,:]{2,100}$", message ="Invalid Tag!")
-        @RequestParam String name
+        @RequestParam String slug
     ){
-        adminProductService.deleteTag(name);
+        adminProductService.deleteTag(slug);
         return ResponseEntity.ok(ApiResponse.ok("Tags deleted successfully"));
     }
 
@@ -85,6 +86,16 @@ public class AdminProductController {
                 ApiResponse.ok("Tag removed from product.")
         );
     }
+
+
+
+
+
+
+
+
+
+
 
     //for adding brand
     @PostMapping(value = "/brand", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

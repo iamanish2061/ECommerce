@@ -1,11 +1,9 @@
 package com.ECommerce.service.products;
 
 import com.ECommerce.dto.response.cart.CartResponse;
-import com.ECommerce.dto.response.product.AllProductsResponse;
 import com.ECommerce.exception.ApplicationException;
 import com.ECommerce.model.ActivityType;
 import com.ECommerce.model.cartandorders.CartItem;
-import com.ECommerce.model.product.ProductImageModel;
 import com.ECommerce.model.product.ProductModel;
 import com.ECommerce.redis.RedisService;
 import com.ECommerce.repository.cartAndOrders.CartRepository;
@@ -67,25 +65,10 @@ public class CartService {
 
     @Transactional
     public List<CartResponse> getCartItems(Long userId) {
-        List<CartItem> cartItems = cartRepository.findByUserId(userId);
-        return cartItems.stream()
-                .map(item-> {
-                    ProductModel product = productRepository.findById(item.getProductId())
-                            .orElseThrow(()-> new ApplicationException("Product not found!", "PRODUCT_NOT_FOUND", HttpStatus.BAD_REQUEST));
-                    AllProductsResponse productsResponse = new AllProductsResponse(
-                            product.getId(),
-                            product.getTitle(),
-                            product.getDescription(),
-                            product.getSellingPrice(),
-                            product.getStock(),
-                            product.getImages().stream()
-                                    .filter(ProductImageModel::isThumbnail)
-                                    .map(ProductImageModel::getUrl)
-                                    .findFirst().orElse(null)
-                    );
-                    return new CartResponse(productsResponse, item.getQuantity());
-                })
-                .toList();
+        List<CartResponse> cartItemsResponse = cartRepository.findCartItemsWithProductDetails(userId);
+        if(cartItemsResponse.isEmpty())
+            throw new ApplicationException("Item not found!", "NOT_FOUND", HttpStatus.NOT_FOUND);
+        return cartItemsResponse;
     }
 
     @Transactional

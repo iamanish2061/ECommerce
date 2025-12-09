@@ -68,13 +68,6 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(response, "Products of: "+ brandSlug));
     }
 
-
-
-
-
-
-
-
 //  end point for getting category name that can be used in dropdowns (admin) useful while adding products
 //  and for displaying categories we have in brand section (customer sees it)
     @GetMapping("/categories")
@@ -83,8 +76,8 @@ public class ProductController {
         return ResponseEntity.ok(ApiResponse.ok(categories, "Categories fetched"));
     }
 
-//displaying products according to the selected category
-    //NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
+//    displaying products according to the selected category
+//    NOTE SEND SLUG WHILE SENDING DATA IN PATH VARIABLE
     @GetMapping("/category-products/{categorySlug}")
     public ResponseEntity<ApiResponse<CategoryWithProductResponse>> getProductsOfCategory(
             @NotBlank(message = "Category is required")
@@ -93,6 +86,17 @@ public class ProductController {
         CategoryWithProductResponse categories = productService.getProductsOfCategory(categorySlug);
         return ResponseEntity.ok(ApiResponse.ok(categories, "Products fetched of: "+categorySlug));
     }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -129,12 +133,6 @@ public class ProductController {
     }
 
     //searched product
-
-
-    //category
-    //brand
-//already return gareko xa but still research garam k hunxa ramro practice chai,
-//    frontend bata filter garney ki backend maa feri req pathaune
 
 
 }

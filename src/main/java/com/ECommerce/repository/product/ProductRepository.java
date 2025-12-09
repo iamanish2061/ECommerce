@@ -53,24 +53,29 @@ public interface ProductRepository extends JpaRepository<ProductModel, Long> {
     """)
     List<Object[]> findAllByBrandSlug(@Param("brandSlug") String brandSlug);
 
-
-
-    List<ProductModel> findByIdNotIn(List<Long> personalizedProductIds);
-
-
+    //category related
     @Query("""
-    SELECT c.name, c.slug, c.imageUrl,
-    p.id, p.title, p.shortDescription, p.sellingPrice, p.stock,
-        (SELECT pi.url FROM ProductImageModel pi
-         WHERE pi.product = p AND pi.thumbnail = true
-         ORDER BY pi.sortOrder ASC, pi.id ASC LIMIT 1) AS productUrl
+    SELECT
+        c.name, c.slug, c.imageUrl,
+        p.id, p.title, p.shortDescription, p.sellingPrice, p.stock,
+        pi.url AS imageUrl
     FROM ProductModel p
     JOIN p.category c
+    LEFT JOIN ProductImageModel pi ON pi.product = p AND pi.thumbnail = true
     WHERE c.slug = :slug
+      AND (pi.id IS NULL OR pi.sortOrder = (
+          SELECT MIN(pi_sub.sortOrder)
+          FROM ProductImageModel pi_sub
+          WHERE pi_sub.product = p AND pi_sub.thumbnail = true
+      ))
     ORDER BY p.id
     """
     )
     List<Object[]> findAllByCategorySlug(@Param("slug") String categorySlug);
+
+
+
+    List<ProductModel> findByIdNotIn(List<Long> personalizedProductIds);
 
 
 }

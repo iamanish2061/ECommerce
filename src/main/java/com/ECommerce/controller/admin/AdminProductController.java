@@ -88,6 +88,7 @@ public class AdminProductController {
     }
 
     //for adding brand
+//    format form maa xa mero desktop ko
     @PostMapping(value = "/brand", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<?>> addBrand(
         @Valid @RequestPart("addBrandRequest") BrandRequest addBrandRequest,
@@ -96,13 +97,6 @@ public class AdminProductController {
         adminProductService.addBrand(addBrandRequest, logo);
         return ResponseEntity.ok(ApiResponse.ok("Brand added successfully"));
     }
-
-
-
-
-
-
-
 
     //for adding category
     @PostMapping(value = "/category", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -113,6 +107,11 @@ public class AdminProductController {
         adminProductService.addCategory(addCategoryRequest, image);
         return ResponseEntity.ok(ApiResponse.ok("Category added successfully"));
     }
+
+
+
+
+
 
     //for adding product
     @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

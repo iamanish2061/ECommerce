@@ -104,15 +104,6 @@ public class ProductService {
         return new BrandWithProductResponse(brandResponse, productsResponse);
     }
 
-
-
-
-
-
-
-
-
-
     public List<CategoryResponse> getAllCategories() {
         List<CategoryModel> categories = categoryRepository.findAll();
         return categories.stream()
@@ -145,6 +136,18 @@ public class ProductService {
 
         return new CategoryWithProductResponse(categoryResponse, productResponse);
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
     public List<AllProductsResponse> getAllProducts() {
         List<ProductModel> products = productRepository.findAll();

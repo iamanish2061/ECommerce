@@ -29,7 +29,6 @@ public class AdminProductService {
     private final ProductRepository productRepository;
     private final ProductImageRepository productImageRepository;
 
-    // adding tags
     @Transactional
     public void addTags(AddTagRequest request) throws ApplicationException {
         List<String> incomingNames = request.names().stream()
@@ -110,13 +109,6 @@ public class AdminProductService {
         brandRepository.save(brandModel);
     }
 
-
-
-
-
-
-
-
     @Transactional
     public void addCategory(AddCategoryRequest addCategoryRequest, MultipartFile image) {
         CategoryModel categoryParent = categoryRepository.findByName(addCategoryRequest.parentName().trim())
@@ -126,11 +118,15 @@ public class AdminProductService {
         categoryModel.setName(addCategoryRequest.name());
         categoryModel.setSlug(HelperClass.generateSlug(addCategoryRequest.name().trim()));
         categoryModel.setParent(categoryParent);
-        String url =ImageUploadHelper.uploadImage(image, addCategoryRequest.name().trim());
+        String url = ImageUploadHelper.uploadImage(image, addCategoryRequest.name().trim());
         categoryModel.setImageUrl(url);
 
         categoryRepository.save(categoryModel);
     }
+
+
+
+
 
     @Transactional
     public SingleProductResponse addNewProduct(AddProductRequest request, List<MultipartFile> imageFiles) throws ApplicationException{
@@ -217,6 +213,8 @@ public class AdminProductService {
                 );
     }
 
+
+
     @Transactional
     public void addImage(Long productId, AddProductImageRequest addProductImageRequest, MultipartFile image) {
 
@@ -271,6 +269,8 @@ public class AdminProductService {
         productModel.setSellingPrice(price);
         productRepository.save(productModel);
     }
+
+
 
     @Transactional
     public void updateQuantity(Long productId, int quantity) {

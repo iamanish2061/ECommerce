@@ -5,7 +5,6 @@ import com.ECommerce.dto.response.order.OrderItemResponse;
 import com.ECommerce.dto.response.order.OrderResponse;
 import com.ECommerce.dto.response.order.SingleOrderResponse;
 import com.ECommerce.exception.ApplicationException;
-import com.ECommerce.model.cartandorders.OrderItem;
 import com.ECommerce.model.cartandorders.OrderModel;
 import com.ECommerce.repository.cartAndOrders.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +40,7 @@ public class AdminOrderService {
         return Arrays.asList("PENDING", "PAID", "SHIPPED", "DELIVERED", "CANCELLED");
     }
 
-    public List<OrderResponse> getOrderofUser(Long userId) {
+    public List<OrderResponse> getOrderOfUser(Long userId) {
         List<OrderModel> allOrderOfUser = orderRepository.findByUserId(userId);
         if(allOrderOfUser == null){
             return new ArrayList<>();
@@ -57,10 +56,12 @@ public class AdminOrderService {
                 .toList();
     }
 
-    public SingleOrderResponse getDetailofOrder(Long orderId) {
-        OrderModel order = orderRepository.findById(orderId).orElseThrow(
-                ()->new ApplicationException("Order not found with id: "+orderId, "INVALID_ORDER_ID", HttpStatus.BAD_REQUEST)
-        );
+    public SingleOrderResponse getDetailOfOrder(Long orderId) {
+        List<Object[]> order = orderRepository.getOrderWithOrderItems(orderId);
+
+        if(order.isEmpty()) {
+            throw new ApplicationException("Order not found with id: " + orderId, "INVALID_ORDER_ID", HttpStatus.BAD_REQUEST);
+        }
 
         return new SingleOrderResponse(
                 new OrderResponse(
@@ -82,6 +83,13 @@ public class AdminOrderService {
     }
 
     @Transactional
-    public void updateOrderStatus(Long orderId, UpdateOrderStatusRequest status) {
+    public void updateOrderStatus(Long orderId, UpdateOrderStatusRequest orderStatus) {
+        OrderModel orderModel = orderRepository.findById(orderId)
+                .orElseThrow(()->
+                        new ApplicationException("Order not found!", "NOT_FOUND", HttpStatus.NOT_FOUND));
+
+        orderModel.setStatus(orderStatus.status());
+        orderRepository.save(orderModel);
     }
+
 }

@@ -1,10 +1,7 @@
 package com.ECommerce.model.cartandorders;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "cart_items",
         uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "product_id"}))
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor @Builder
 public class CartItem {

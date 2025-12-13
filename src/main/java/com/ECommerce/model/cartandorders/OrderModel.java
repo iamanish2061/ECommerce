@@ -3,10 +3,7 @@ package com.ECommerce.model.cartandorders;
 import com.ECommerce.model.user.Users;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,7 +12,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "orders")
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 public class OrderModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

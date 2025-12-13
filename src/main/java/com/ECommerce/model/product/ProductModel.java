@@ -3,9 +3,8 @@ package com.ECommerce.model.product;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,7 +20,7 @@ import static jakarta.persistence.FetchType.LAZY;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "products", indexes = {
@@ -81,6 +80,7 @@ public class ProductModel {
     // Relations
     @OneToMany(mappedBy = "product", cascade = ALL, orphanRemoval = true)
     @JsonIgnoreProperties("product")
+    @BatchSize(size = 5)
     private List<ProductImageModel> images = new ArrayList<>();
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
